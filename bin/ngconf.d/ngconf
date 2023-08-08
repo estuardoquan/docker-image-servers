@@ -1,0 +1,34 @@
+#!/bin/sh
+. /src/ngcli.lib
+
+if [[ $1 == '--debug' ]]; then
+    shift 1
+    NGCONF_DEBUG=1
+fi
+if [[ $1 == 'create' ]]; then
+    shift 1
+    out=default.conf
+    if [[ $1 == '--out' ]]; then
+        out=${2?Error}
+        shift 2
+    fi
+    if [[ $1 == 'server' ]]; then
+        shift 1
+        run=${1:-server}
+        if [[ $run == "--php" ]]; then
+            php=${2?Error}
+            run="php ${php}"
+            shift 2
+        fi
+        __print_server_conf ${@} ${run} > ${out}
+    fi
+    # if [[ $1 == 'proxy' ]]; then
+    #     shift 1
+    #     if [[ $1 == '--redirect' ]]; then
+    #         shift 1;
+    #     fi
+    #     proxy=${1?Error}
+    #     __print_server_conf ${@} proxy ${proxy}
+    # fi
+fi
+

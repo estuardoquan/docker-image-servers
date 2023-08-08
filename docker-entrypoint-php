@@ -1,0 +1,38 @@
+#!/bin/sh
+
+NGCONF_PORT=${NGCONF_PORT:-80}
+NGCONF_NAME=${NGCONF_NAME:-localhost}
+NGCONF_SAN=${NGCONF_SAN:-""}
+NGCONF_ROOT=${NGCONF_ROOT:-/var/www/html}
+NGCONF_LOCATION=${NGCONF_LOCATION:-/}
+NGCONF_PHP=${NGCONF_PHP:-http://localhost:9000}
+NGCONF_HTTPS=${NGCONF_HTTPS:-""}
+NGCONF_OUT=${NGCONF_OUT:-/etc/nginx/conf.d/default.conf}
+NGCONF_DEBUG=${NGCONF_DEBUG:-0}
+
+function __init(){
+    set -- server \
+    --php ${NGCONF_PHP} \
+    -p ${NGCONF_PORT} \
+    -n ${NGCONF_NAME} \
+    -r ${NGCONF_ROOT} \
+    -d ${NGCONF_LOCATION}
+    
+    if [[ -n "${NGCONF_SAN}" ]]; then
+        set -- ${@} \
+        -s ${NGCONF_SAN}
+    fi
+    
+    if [[ -n "${NGCONF_HTTPS}" ]]; then
+        set -- ${@} \
+        -h ${NGCONF_HTTPS}
+    fi
+    
+    ngcli create --out ${NGCONF_OUT} ${@}
+}
+
+__init
+
+sleep 10
+/certwatch.sh &
+exec ${@}
