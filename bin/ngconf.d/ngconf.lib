@@ -1,94 +1,95 @@
 #!/bin/sh
-NG_DEBUG=0
+NGCONF_DEBUG=0
 
 function __start_block(){
-    if [[ $NG_DEBUG == 1 ]]; then
+    if [[ $NGCONF_DEBUG == 1 ]]; then
         printf "%s %s\n" "$(echo ${@})" "{"
     fi
-    if [[ $NG_DEBUG == 0 ]]; then
+    if [[ $NGCONF_DEBUG == 0 ]]; then
         printf "%s %s" "$(echo ${@})" "{"
     fi
 }
 
 function __print_property(){
-    if [[ $NG_DEBUG == 1 ]]; then
+    if [[ $NGCONF_DEBUG == 1 ]]; then
         printf "%s\n" "$(echo ${@});"
     fi
-    if [[ $NG_DEBUG == 0 ]]; then
+    if [[ $NGCONF_DEBUG == 0 ]]; then
         printf "%s" "$(echo ${@});"
     fi
 }
 
 function __start_server_block(){
-    __start_block server
+    __start_block "server"
 }
 
 function __end_block(){
-    if [[ $NG_DEBUG == 1 ]]; then
-        printf "%s\n" }
+    if [[ $NGCONF_DEBUG == 1 ]]; then
+        printf "%s\n" "}"
     fi
-    if [[ $NG_DEBUG == 0 ]]; then
-        printf "%s" }
+    if [[ $NGCONF_DEBUG == 0 ]]; then
+        printf "%s" "}"
     fi
 }
 
 function __end_print(){
-    printf "%s\n" }
+    printf "%s\n" "}"
 }
 
 function __start_location_block(){
-    local location=${@:-/}
-    __start_block location ${location}
+    __start_block "location" "${@}"
     unset location
 }
 
 function __print_server_http_port(){
     local port=${1?Error}
-    __print_property listen ${port}
+    __print_property "listen" "${port}"
     unset port
 }
 
 function __print_server_http2_port(){
     local port=${1?Error}
-    __print_server_http_port "${port} ssl"
-    __print_property http2 on
+    __print_property "listen" "${port}" "ssl"
+    __print_property "http2" "on"
     unset port
 }
 
 function __print_server_name(){
     local name=${1?Error}
-    __print_property server_name ${name}
+    __print_property "server_name" "${name}"
     unset name
 }
 
 function __print_server_logs(){
-    local access=${1?Error}
-    local error=${2?Error}
-    __print_property access_log ${access}
-    __print_property error_log ${error}
-    unset access error
+    local dir=${1?Error}
+    local name=${2?Error}
+    __print_property "access_log" "${dir}/${name}.access.log"
+    __print_property "error_log" "${dir}/${name}.error.log"
+    unset dir name
 }
 
 function __print_server_root(){
     local root=${1?Error}
-    __print_property root ${root}
+    __print_property "root" "${root}"
     unset root
 }
 
 function __print_server_index(){
     local index=${1?Error}
-    __print_property index ${index}
+    __print_property "index" "${index}"
     unset index
 }
 
-function __print_location_data(){
+function __print_location_block(){
     local access=""
     local deny=""
     local files=""
     local gzip=""
     local log=""
     local proxy=""
-    while getopts :a:d:f:g:l:p: opt; do
+    local route=/
+    while getopts :a:d:f:g:l:p:r: opt;
+    do
         case "${opt}" in
             a) access=${OPTARG}
             shift 2;;
@@ -102,59 +103,47 @@ function __print_location_data(){
             shift 2;;
             p) proxy=${OPTARG}
             shift 2;;
+            p) route=${OPTARG}
+            shift 2;;
             *)
             exit 1;;
         esac
     done
+    __start_location_block "${route}"
     if [ -n "${access}" ]; then
-        __print_property access_log ${access}
+        __print_property "access_log" "${access}"
     fi
     if [ -n "${deny}" ]; then
-        __print_property deny ${deny}
+        __print_property "deny" "${deny}"
     fi
     if [ -n "${files}" ]; then
-        __print_property try_files "\$uri \$uri/ ${files}"
+        __print_property "try_files" "\$uri \$uri/ ${files}"
     fi
     if [ -n "${gzip}" ]; then
-        __print_property gzip_static ${gzip}
+        __print_property "gzip_static" "${gzip}"
     fi
     if [ -n "${log}" ]; then
-        __print_property log_not_found ${log}
+        __print_property "log_not_found" "${log}"
     fi
     if [ -n "${proxy}" ]; then
-        __print_property proxy_pass ${proxy}
+        __print_property "proxy_pass" "${proxy}"
         __print_proxy_conf
     fi
-    unset access deny files gzip log proxy
-}
-
-function __print_location_block(){
-    local route=""
-    while getopts r: opt; do
-        case "${opt}" in
-            r) route=${OPTARG}
-            shift 2;;
-            *)
-            ;;
-        esac
-    done
-    __start_location_block $route
-    __print_location_data ${@}
     __end_block
-    unset route
+    unset access deny files gzip log proxy route
 }
 
 function __print_favicon_location_block(){
-    __print_location_block -r /favicon.ico -a off -l off
+    __print_location_block -a off -l off
     
 }
 
 function __print_robots_location_block(){
-    __print_location_block -r /robots.txt -a off -l off
+    __print_location_block -a off -l off
 }
 
 function __print_ht_location_block(){
-    __print_location_block -r "~ /\.ht" -d all
+    __print_location_block -d all "~ /\.ht"
 }
 
 function __print_node_location_block(){
@@ -169,62 +158,62 @@ function __print_php_files_location_block()
 function __print_php_fastcgi_location_block(){
     local php=${1?Error}
     __start_location_block "~ \.php"
-    __print_property fastcgi_index index.php;
-    __print_property fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-    __print_property fastcgi_pass $php;
-    __print_property fastcgi_split_path_info "^(.+\.php)(/.+)$"
-    __print_property fastcgi_intercept_errors off
-    __print_property fastcgi_buffers 4 16k
-    __print_property fastcgi_buffer_size 16k
-    __print_property fastcgi_connect_timeout 300
-    __print_property fastcgi_read_timeout 300
-    __print_property fastcgi_send_timeout 300
-    __print_property include fastcgi_params
+    __print_property "fastcgi_index" "index.php";
+    __print_property "fastcgi_param" "SCRIPT_FILENAME" "\$document_root\$fastcgi_script_name";
+    __print_property "fastcgi_pass" "${php}";
+    __print_property "fastcgi_split_path_info" "^(.+\.php)(/.+)$"
+    __print_property "fastcgi_intercept_errors" "off"
+    __print_property "fastcgi_buffers" "4" "16k"
+    __print_property "fastcgi_buffer_size" "16k"
+    __print_property "fastcgi_connect_timeout" "300"
+    __print_property "fastcgi_read_timeout" "300"
+    __print_property "fastcgi_send_timeout" "300"
+    __print_property "include" "fastcgi_params"
     __end_block
     unset php
 }
 
 function __print_proxy_conf(){
-    __print_property proxy_read_timeout 43200
-    __print_property proxy_connect_timeout 3
-    __print_property proxy_buffering off
-    __print_property proxy_redirect off
-    __print_property proxy_http_version 1.1
-    __print_property proxy_set_header Host \$host
-    __print_property proxy_set_header Upgrade \$http_upgrade
-    __print_property proxy_set_header Connection \$proxy_connection
-    __print_property proxy_set_header X-Real-IP \$remote_addr
-    __print_property proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for
-    __print_property proxy_set_header X-Forwarded-Proto \$proxy_x_forwarded_proto
-    __print_property proxy_set_header X-Forwarded-Ssl \$proxy_x_forwarded_ssl
-    __print_property proxy_set_header X-Forwarded-Port \$proxy_x_forwarded_port
-    __print_property proxy_set_header Proxy \"\"
+    __print_property "proxy_read_timeout" "43200"
+    __print_property "proxy_connect_timeout" "3"
+    __print_property "proxy_buffering" "off"
+    __print_property "proxy_redirect" "off"
+    __print_property "proxy_http_version" "1.1"
+    __print_property "proxy_set_header" "Host" "\$host"
+    __print_property "proxy_set_header" "Upgrade" "\$http_upgrade"
+    __print_property "proxy_set_header" "Connection" "\$proxy_connection"
+    __print_property "proxy_set_header" "X-Real-IP" "\$remote_addr"
+    __print_property "proxy_set_header" "X-Forwarded-For" "\$proxy_add_x_forwarded_for"
+    __print_property "proxy_set_header" "X-Forwarded-Proto" "\$proxy_x_forwarded_proto"
+    __print_property "proxy_set_header" "X-Forwarded-Ssl" "\$proxy_x_forwarded_ssl"
+    __print_property "proxy_set_header" "X-Forwarded-Port" "\$proxy_x_forwarded_port"
+    __print_property "proxy_set_header" "Proxy" "\"\""
 }
 
 function __print_https_conf(){
     local path=${1?Error}
     local name=${2:-site}
-    __print_property ssl_certificate  ${path}/${name}.crt
-    __print_property ssl_certificate_key  ${path}/${name}.key
-    __print_property ssl_session_timeout 1d
-    __print_property ssl_session_cache shared:SSL:50m
-    __print_property ssl_session_tickets off
-    __print_property ssl_prefer_server_ciphers on
-    __print_property ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3
+    __print_property "ssl_certificate"  "${path}/${name}.crt"
+    __print_property "ssl_certificate_key"  "${path}/${name}.key"
+    __print_property "ssl_session_timeout" "1d"
+    __print_property "ssl_session_cache" "shared:SSL:50m"
+    __print_property "ssl_session_tickets" "off"
+    __print_property "ssl_prefer_server_ciphers" "on"
+    __print_property "ssl_protocols" "TLSv1" "TLSv1.1" "TLSv1.2" "TLSv1.3"
     unset path name
 }
 
 function __print_server_conf(){
     local name=localhost
-    local subdomain=""
+    local san=""
     local https=""
     local port=80
-    local root=/usr/nginx/html
-    local index=index.html
-    local log=/var/log/nginx
-    local dir=/
-    local files=index.html
-    while getopts n:s:h:p:r:i:l:d:f: opt; do
+    local root=""
+    local index=""
+    local log=""
+    
+    while getopts n:s:h:p:r:i:l: opt;
+    do
         case "${opt}" in
             n) name=${OPTARG}
             shift 2;;
@@ -240,54 +229,70 @@ function __print_server_conf(){
             shift 2;;
             l) log=${OPTARG}
             shift 2;;
-            d) dir=${OPTARG}
-            shift 2;;
-            f) files=${OPTARG}
-            shift 2;;
-            *) ;;
+            *)
+            exit 1;;
         esac
     done
-    local server=${1?Error}
-    shift 1
+    
     __start_server_block
+    
     if [ -n "${https}" ]; then
-        __print_server_http2_port ${port}
-        __print_https_conf ${https}
+        __print_server_http2_port "${port}"
+        __print_https_conf "${https}"
     else
-        __print_server_http_port ${port}
+        __print_server_http_port "${port}"
     fi
+    
     __print_server_name "${name} ${san}"
-    __print_server_logs ${log}/${name}.access.log ${log}/${name}.error.log
-    if [[ "${server}" == "server" ]];then
-        __print_server_root ${root}
-        __print_server_index ${index}
-        
-        __print_location_block -r ${dir} -f ${files}
-        
-        __print_favicon_location_block
-        __print_robots_location_block
-        __print_ht_location_block
+    
+    if [[ -n "${log}" ]]; then
+        __print_server_logs "${log}" "${name}"
     fi
-    if [[ "${server}" == "php" ]];then
-        __print_server_root ${root}
-        
-        local php=${1?Error}
-        files=/index.php?\$query_string
-        index="${index} index.php"
+    if [[ -n "${root}" ]]; then
+        __print_server_root "${root}"
+    fi
+    if [[ -n "${index}" ]]; then
         __print_server_index "${index}"
-        __print_location_block -r ${dir} -f ${files} -g on
-        __print_php_fastcgi_location_block ${php}
-        unset php
-        
-        __print_favicon_location_block
-        __print_robots_location_block
-        __print_ht_location_block
     fi
-    if [[ "${server}" == "proxy" ]];then
-        local proxy=${1?Error}
-        __print_location_block -r ${dir} -p ${proxy}
-        unset proxy
-    fi
+    while [[ $# -gt 0 ]]; do
+        local run=${1}
+        shift 1
+        echo "$@"
+        if [[ "${run}" == "location" ]]; then
+            local opts=
+            while getopts :a:d:f:g:l:p:r: opt;
+            do
+                case "${opt}" in
+                    a)
+                        opts="${opts} -${opt} ${OPTARG}"
+                    shift 2;;
+                    d)
+                        opts="${opts} -${opt} ${OPTARG}"
+                    shift 2;;
+                    f)
+                        opts="${opts} -${opt} ${OPTARG}"
+                    shift 2;;
+                    g)
+                        opts="${opts} -${opt} ${OPTARG}"
+                    shift 2;;
+                    l)
+                        opts="${opts} -${opt} ${OPTARG}"
+                    shift 2;;
+                    p)
+                        opts="${opts} -${opt} ${OPTARG}"
+                    shift 2;;
+                    *)
+                    exit 1;;
+                esac
+            done
+            echo $opts
+            # __print_location_block $opts
+            # shift 2
+        fi
+        if [[ "${run}" == "php" ]]; then
+            __print_php_fastcgi_location_block "$1"
+        fi
+    done
     __end_print
-    unset name subdomain https port root index log dir files server
+    unset name san https port root index log run
 }

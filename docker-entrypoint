@@ -1,0 +1,73 @@
+#!/bin/sh
+
+NGCONF_PORT=${NGCONF_PORT:-80}
+NGCONF_NAME=${NGCONF_NAME:-localhost}
+NGCONF_ROOT=${NGCONF_ROOT:-/var/www/html}
+NGCONF_INDEX=${NGCONF_INDEX:-index.html}
+NGCONF_LOG=${NGCONF_LOG:-""}
+NGCONF_SAN=${NGCONF_SAN:-""}
+NGCONF_HTTPS=${NGCONF_HTTPS:-""}
+NGCONF_LOCATION=${NGCONF_LOCATION:-/}
+NGCONF_LOCATION_OPTS=${NGCONF_LOCATION_OPTS:-"-f /index.html"}
+NGCONF_FAVICON=${NGCONF_FAVICON:-1}
+NGCONF_ROBOTS=${NGCONF_ROBOTS:-1}
+NGCONF_HT=${NGCONF_HT:-1}
+NGCONF_DEBUG=${NGCONF_DEBUG:-1}
+NGCONF_OUT=${NGCONF_OUT:-/etc/nginx/conf.d/default.conf}
+
+function __init(){
+    set -- \
+    -p "${NGCONF_PORT}" \
+    -n "${NGCONF_NAME}" \
+    
+    if [[ -n "${NGCONF_SAN}" ]]; then
+        set -- \
+        -s "${NGCONF_SAN}" \
+        ${@}
+    fi
+    if [[ -n "${NGCONF_HTTPS}" ]]; then
+        set -- \
+        -h "${NGCONF_HTTPS}" \
+        ${@}
+    fi
+    if [[ -n "${NGCONF_ROOT}" ]]; then
+        set -- \
+        -r "${NGCONF_ROOT}" \
+        ${@}
+    fi
+    if [[ -n "${NGCONF_INDEX}" ]]; then
+        set -- \
+        -i "${NGCONF_INDEX}" \
+        ${@}
+    fi
+    if [[ -n "${NGCONF_LOG}" ]]; then
+        set -- \
+        -l "${NGCONF_LOG}" \
+        ${@}
+    fi
+    
+    if [[ -n "${NGCONF_LOCATION}" ]]; then
+        set -- ${@} \
+        location ${NGCONF_LOCATION_OPTS} #"${NGCONF_LOCATION}"
+    fi
+    if [[ $NGCONF_FAVICON == 1 || $NGCONF_FAVICON == true ]]; then
+        set -- ${@} \
+        location -a off -l off #"/favicon.ico"
+    fi
+    # if [[ $NGCONF_ROBOTS == 1 || $NGCONF_ROBOTS == true ]]; then
+    #     set -- "${@}" \
+    #     location "-a off -l off" #"/robots.txt"
+    # fi
+    # if [[ $NGCONF_HT == 1 || $NGCONF_HT == true ]]; then
+    #     set -- "${@}" \
+    #     location "-d all" #"~ /\.ht"
+    # fi
+    
+    ngconf --debug create "${@}"
+}
+
+__init
+
+sleep 10
+# certwatch &
+exec ${@}
