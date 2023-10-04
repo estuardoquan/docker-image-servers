@@ -6,12 +6,25 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::oct;
+
+#include <string>
 using std::string;
 
-#define __CHECK_OPTARG                                           \
+#define __GET_SUBOPTS \
+    (getsubopt(&subopt.cstr, token, &subopt.value))
+
+#define __CHECK_SUBOPT \
+    (*subopt.cstr != '\0' && !errfnd)
+
+#define __CHECK_SUBOPT_ARG                                       \
     ((optarg == NULL && optind < argc && argv[optind][0] != '-') \
          ? (bool)(optarg = argv[optind++])                       \
          : (optarg != NULL))
+
+#define __IFCHECK_SUBOPT_VAL  \
+    if (subopt.value == NULL) \
+        subopt_usage(token[SUBOPT_NAME], &errfnd);
+// ()
 
 typedef enum
 {
@@ -20,14 +33,15 @@ typedef enum
     SUBOPT_OTHER,
 } __SUBOPTS;
 
-typedef struct __cstruct
+typedef struct __copt
 {
     char value[10];
-} __cstruct;
+    char alt[2];
+} __copt;
 
 typedef struct __subopt
 {
-    char *args;
+    char *cstr;
     char *value;
 } __subopt;
 
@@ -44,7 +58,14 @@ static int usage(const char *argv0)
          << argv0
          << endl;
 
-    return 1;
+    exit(1);
+}
+
+static int subopt_usage(const char *subopt, int *errfnd)
+{
+    cout << "Usage: --option [" << subopt << "= ] " << endl;
+    *errfnd = 1;
+    exit(1);
 }
 
 int main(int argc, char *argv[])
@@ -63,19 +84,19 @@ int main(int argc, char *argv[])
         {"log", optional_argument, 0, 0},
         {"location", required_argument, 0, 0},
         {"php", required_argument, 0, 0},
-        {0, 0, 0, 0},
+        NULL,
     };
 
-    static struct __cstruct sub_options[] = {
-        [SUBOPT_DIR] = {"dir"},
-        [SUBOPT_NAME] = {"name"},
-        [SUBOPT_OTHER] = {"other"},
+    struct __copt sub_options[] = {
+        {"dir"},
+        {"name"},
+        {"other"},
     };
 
     char *const token[] = {
-        [SUBOPT_DIR] = sub_options[SUBOPT_DIR].value,
-        [SUBOPT_NAME] = sub_options[SUBOPT_NAME].value,
-        [SUBOPT_OTHER] = sub_options[SUBOPT_OTHER].value,
+        sub_options[SUBOPT_DIR].value,
+        sub_options[SUBOPT_NAME].value,
+        sub_options[SUBOPT_OTHER].value,
         NULL,
     };
     __subopt subopt;
@@ -115,48 +136,25 @@ int main(int argc, char *argv[])
             }
             if (long_options[option_index].name == "san")
             {
-                if (san.empty())
-                {
-                    san = optarg;
-                }
-                else
-                {
-                    san = san + " " + optarg;
-                }
+                san = san.empty() ? optarg : san + " " + optarg;
             }
             if (long_options[option_index].name == "https")
             {
                 https.active = true;
-                if (__CHECK_OPTARG)
+                if (__CHECK_SUBOPT_ARG)
                 {
-                    subopt.args = optarg;
-                    while (*subopt.args != '\0' && !errfnd)
+                    subopt.cstr = optarg;
+                    while (__CHECK_SUBOPT)
                     {
-                        switch (getsubopt(&subopt.args, token, &subopt.value))
+                        switch (__GET_SUBOPTS)
                         {
                         case SUBOPT_DIR:
-                            if (subopt.value == NULL)
-                            {
-                                cout << "Missing value for suboption "
-                                     << token[SUBOPT_DIR]
-                                     << endl;
-                                errfnd = 1;
-                                continue;
-                            }
+                            __IFCHECK_SUBOPT_VAL
                             https.dir = subopt.value;
                             break;
                         case SUBOPT_NAME:
-                            if (subopt.value == NULL)
-                            {
-                                cout << "Missing value for suboption "
-                                     << token[SUBOPT_NAME]
-                                     << endl;
-                                errfnd = 1;
-                                continue;
-                            }
+                            __IFCHECK_SUBOPT_VAL
                             https.name = subopt.value;
-                            break;
-                        default:
                             break;
                         }
                     }
@@ -177,36 +175,20 @@ int main(int argc, char *argv[])
             if (long_options[option_index].name == "log")
             {
                 log.active = true;
-                if (__CHECK_OPTARG)
+                if (__CHECK_SUBOPT_ARG)
                 {
-                    subopt.args = optarg;
-                    while (*subopt.args != '\0' && !errfnd)
+                    subopt.cstr = optarg;
+                    while (__CHECK_SUBOPT)
                     {
-                        switch (getsubopt(&subopt.args, token, &subopt.value))
+                        switch (__GET_SUBOPTS)
                         {
                         case SUBOPT_DIR:
-                            if (subopt.value == NULL)
-                            {
-                                cout << "Missing value for suboption "
-                                     << token[SUBOPT_DIR]
-                                     << endl;
-                                errfnd = 1;
-                                continue;
-                            }
+                            __IFCHECK_SUBOPT_VAL
                             log.dir = subopt.value;
                             break;
                         case SUBOPT_NAME:
-                            if (subopt.value == NULL)
-                            {
-                                cout << "Missing value for suboption "
-                                     << token[SUBOPT_NAME]
-                                     << endl;
-                                errfnd = 1;
-                                continue;
-                            }
+                            __IFCHECK_SUBOPT_VAL
                             log.name = subopt.value;
-                            break;
-                        default:
                             break;
                         }
                     }
