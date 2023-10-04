@@ -1,6 +1,3 @@
-#define _XOPEN_SOURCE 500
-
-#include <assert.h>
 #include <getopt.h>
 #include <stdlib.h>
 
@@ -11,6 +8,36 @@ using std::endl;
 using std::oct;
 using std::string;
 
+#define __CHECK_OPTARG                                           \
+    ((optarg == NULL && optind < argc && argv[optind][0] != '-') \
+         ? (bool)(optarg = argv[optind++])                       \
+         : (optarg != NULL))
+
+typedef enum
+{
+    SUBOPT_DIR,
+    SUBOPT_NAME,
+    SUBOPT_OTHER,
+} __SUBOPTS;
+
+typedef struct __cstruct
+{
+    char value[10];
+} __cstruct;
+
+typedef struct __subopt
+{
+    char *args;
+    char *value;
+} __subopt;
+
+typedef struct __fopt
+{
+    bool active;
+    string dir;
+    string name;
+} __https;
+
 static int usage(const char *argv0)
 {
     cout << "Usage: "
@@ -20,58 +47,56 @@ static int usage(const char *argv0)
     return 1;
 }
 
-struct Https
-{
-    bool active;
-    string dir;
-    string name;
-};
-
 int main(int argc, char *argv[])
 {
-
-    string scope = "n:s:h:p:r:i:l:";
+    string scope = "";
     int opt;
     int digit_optind = 0;
 
-    string name;
-    string san;
-    enum HTTPS_OPTS
-    {
-        HTTPS_DIR_OPT,
-        HTTPS_NAME_OPT,
+    static struct option long_options[] = {
+        {"name", required_argument, 0, 0},
+        {"san", required_argument, 0, 0},
+        {"https", optional_argument, 0, 0},
+        {"port", required_argument, 0, 0},
+        {"root", required_argument, 0, 0},
+        {"index", required_argument, 0, 0},
+        {"log", optional_argument, 0, 0},
+        {"location", required_argument, 0, 0},
+        {"php", required_argument, 0, 0},
+        {0, 0, 0, 0},
     };
-    char https_name[] = "name";
-    char https_dir[] = "dir";
-    char *const https_token[] = {
-        https_dir,
-        https_name,
+
+    static struct __cstruct sub_options[] = {
+        [SUBOPT_DIR] = {"dir"},
+        [SUBOPT_NAME] = {"name"},
+        [SUBOPT_OTHER] = {"other"},
+    };
+
+    char *const token[] = {
+        [SUBOPT_DIR] = sub_options[SUBOPT_DIR].value,
+        [SUBOPT_NAME] = sub_options[SUBOPT_NAME].value,
+        [SUBOPT_OTHER] = sub_options[SUBOPT_OTHER].value,
         NULL,
     };
-    char *https_subopts;
-    char *https_value;
-    int https_errfnd = 0;
-    Https https;
+    __subopt subopt;
+    int errfnd = 0;
+
+    string name = "localhost";
+    string san;
+    __fopt https = {
+        .active = false,
+    };
     int port = 80;
     string root;
     string index;
-    string log;
+    __fopt log = {
+        .active = false,
+    };
 
     while (1)
     {
         int this_option_optind = optind ? optind : 1;
         int option_index = 0;
-        static struct option long_options[] = {
-            {"name", required_argument, 0, 0},
-            {"san", required_argument, 0, 0},
-            {"https", required_argument, 0, 0},
-            {"port", required_argument, 0, 0},
-            {"root", required_argument, 0, 0},
-            {"index", required_argument, 0, 0},
-            {"log", required_argument, 0, 0},
-            {"location", required_argument, 0, 0},
-            {"php", required_argument, 0, 0},
-            {0, 0, 0, 0}};
 
         opt = getopt_long(argc, argv, scope.c_str(),
                           long_options, &option_index);
@@ -102,34 +127,34 @@ int main(int argc, char *argv[])
             if (long_options[option_index].name == "https")
             {
                 https.active = true;
-                if (optarg)
+                if (__CHECK_OPTARG)
                 {
-                    https_subopts = optarg;
-                    while (*https_subopts != '\0' && !https_errfnd)
+                    subopt.args = optarg;
+                    while (*subopt.args != '\0' && !errfnd)
                     {
-                        switch (getsubopt(&https_subopts, https_token, &https_value))
+                        switch (getsubopt(&subopt.args, token, &subopt.value))
                         {
-                        case HTTPS_DIR_OPT:
-                            if (https_value == NULL)
+                        case SUBOPT_DIR:
+                            if (subopt.value == NULL)
                             {
                                 cout << "Missing value for suboption "
-                                     << https_token[HTTPS_NAME_OPT]
+                                     << token[SUBOPT_DIR]
                                      << endl;
-                                https_errfnd = 1;
+                                errfnd = 1;
                                 continue;
                             }
-                            https.dir = https_value;
+                            https.dir = subopt.value;
                             break;
-                        case HTTPS_NAME_OPT:
-                            if (https_value == NULL)
+                        case SUBOPT_NAME:
+                            if (subopt.value == NULL)
                             {
                                 cout << "Missing value for suboption "
-                                     << https_token[HTTPS_NAME_OPT]
+                                     << token[SUBOPT_NAME]
                                      << endl;
-                                https_errfnd = 1;
+                                errfnd = 1;
                                 continue;
                             }
-                            https.name = https_value;
+                            https.name = subopt.value;
                             break;
                         default:
                             break;
@@ -139,19 +164,53 @@ int main(int argc, char *argv[])
             }
             if (long_options[option_index].name == "port")
             {
-                // TODO
+                port = atoi(optarg);
             }
             if (long_options[option_index].name == "root")
             {
-                // TODO
+                root = optarg;
             }
             if (long_options[option_index].name == "index")
             {
-                // TODO
+                index = optarg;
             }
             if (long_options[option_index].name == "log")
             {
-                // TODO
+                log.active = true;
+                if (__CHECK_OPTARG)
+                {
+                    subopt.args = optarg;
+                    while (*subopt.args != '\0' && !errfnd)
+                    {
+                        switch (getsubopt(&subopt.args, token, &subopt.value))
+                        {
+                        case SUBOPT_DIR:
+                            if (subopt.value == NULL)
+                            {
+                                cout << "Missing value for suboption "
+                                     << token[SUBOPT_DIR]
+                                     << endl;
+                                errfnd = 1;
+                                continue;
+                            }
+                            log.dir = subopt.value;
+                            break;
+                        case SUBOPT_NAME:
+                            if (subopt.value == NULL)
+                            {
+                                cout << "Missing value for suboption "
+                                     << token[SUBOPT_NAME]
+                                     << endl;
+                                errfnd = 1;
+                                continue;
+                            }
+                            log.name = subopt.value;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                }
             }
             if (long_options[option_index].name == "location")
             {
@@ -167,7 +226,10 @@ int main(int argc, char *argv[])
             usage(argv[0]);
         }
     }
-    cout << san << endl;
-    cout << https.active << " " << https.dir << " " << https.name << endl;
+    cout << "name : " << name << endl;
+    cout << "san: " << san << endl;
+    cout << "https: " << https.active << " " << https.dir << " " << https.name << endl;
+    cout << "port: " << port << endl;
+    cout << "log: " << log.active << " " << log.dir << " " << log.name << endl;
     return 0;
 }
