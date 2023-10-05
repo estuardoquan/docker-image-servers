@@ -1,58 +1,78 @@
 #include <getopt.h>
-#include <stdlib.h>
 
 #include <iostream>
+#include <string>
+
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::oct;
 
-#include <string>
 using std::string;
+
+#define CSTRSIZE 10
 
 #define __GET_SUBOPTS \
     (getsubopt(&subopt.cstr, token, &subopt.value))
 
-#define __CHECK_SUBOPT \
-    (*subopt.cstr != '\0' && !errfnd)
+#define __SET_OPT \
+    (opt = getopt_long(argc, argv, scope, options, &o))
 
-#define __CHECK_SUBOPT_ARG                                       \
+#define __CHECK_SUBOPT \
+    (check_subopt(*subopt.cstr, &errfnd))
+
+#define __CHECK_SUBOPT_ARGS                                      \
     ((optarg == NULL && optind < argc && argv[optind][0] != '-') \
          ? (bool)(optarg = argv[optind++])                       \
          : (optarg != NULL))
 
-#define __IFCHECK_SUBOPT_VAL  \
+#define __IF_SUBOPT_VAL(n)    \
     if (subopt.value == NULL) \
-        subopt_usage(token[SUBOPT_NAME], &errfnd);
-// ()
+        subopt_usage(token[n], &errfnd);
+
+#define __CHECK_SUBOPT_DIR \
+    __IF_SUBOPT_VAL(SUBOPT_DIR)
+#define __CHECK_SUBOPT_NAME \
+    __IF_SUBOPT_VAL(SUBOPT_NAME)
+
+typedef enum
+{
+    LONGOPT_HTTPS,
+    LONGOPT_INDEX,
+    LONGOPT_LOCATION,
+    LONGOPT_LOG,
+    LONGOPT_NAME,
+    LONGOPT_PHP,
+    LONGOPT_PORT,
+    LONGOPT_ROOT,
+    LONGOPT_SAN,
+} LONGOPTS;
 
 typedef enum
 {
     SUBOPT_DIR,
     SUBOPT_NAME,
     SUBOPT_OTHER,
-} __SUBOPTS;
+} SUBOPTS;
 
-typedef struct __copt
+typedef struct cstruct
 {
-    char value[10];
-    char alt[2];
-} __copt;
+    char cstr[CSTRSIZE];
+} cstruct;
 
-typedef struct __subopt
+struct subopt
 {
     char *cstr;
     char *value;
-} __subopt;
+};
 
-typedef struct __fopt
+struct fsopt
 {
     bool active;
     string dir;
     string name;
-} __https;
+};
 
-static int usage(const char *argv0)
+int usage(const char *argv0)
 {
     cout << "Usage: "
          << argv0
@@ -61,87 +81,73 @@ static int usage(const char *argv0)
     exit(1);
 }
 
-static int subopt_usage(const char *subopt, int *errfnd)
+int subopt_usage(const char *subopt, int *err)
 {
     cout << "Usage: --option [" << subopt << "= ] " << endl;
-    *errfnd = 1;
+    *err = 1;
     exit(1);
+}
+
+int check_subopt(const char &c, int *err)
+{
+    return (c != '\0' && !*err);
 }
 
 int main(int argc, char *argv[])
 {
-    string scope = "";
+    const char *scope = "";
     int opt;
-    int digit_optind = 0;
-
-    static struct option long_options[] = {
-        {"name", required_argument, 0, 0},
-        {"san", required_argument, 0, 0},
+    struct subopt subopt;
+    int errfnd = 0;
+    static struct option options[] = {
         {"https", optional_argument, 0, 0},
+        {"index", required_argument, 0, 0},
+        {"location", required_argument, 0, 0},
+        {"log", optional_argument, 0, 0},
+        {"name", required_argument, 0, 0},
+        {"php", required_argument, 0, 0},
         {"port", required_argument, 0, 0},
         {"root", required_argument, 0, 0},
-        {"index", required_argument, 0, 0},
-        {"log", optional_argument, 0, 0},
-        {"location", required_argument, 0, 0},
-        {"php", required_argument, 0, 0},
+        {"san", required_argument, 0, 0},
         NULL,
     };
 
-    struct __copt sub_options[] = {
+    static cstruct suboptions[] = {
         {"dir"},
         {"name"},
         {"other"},
     };
 
     char *const token[] = {
-        sub_options[SUBOPT_DIR].value,
-        sub_options[SUBOPT_NAME].value,
-        sub_options[SUBOPT_OTHER].value,
+        suboptions[SUBOPT_DIR].cstr,
+        suboptions[SUBOPT_NAME].cstr,
+        suboptions[SUBOPT_OTHER].cstr,
         NULL,
     };
-    __subopt subopt;
-    int errfnd = 0;
 
     string name = "localhost";
     string san;
-    __fopt https = {
+    struct fsopt https = {
         .active = false,
     };
     int port = 80;
     string root;
     string index;
-    __fopt log = {
+    struct fsopt log = {
         .active = false,
     };
 
-    while (1)
+    int o = 0;
+    while ((__SET_OPT) != -1)
     {
-        int this_option_optind = optind ? optind : 1;
-        int option_index = 0;
-
-        opt = getopt_long(argc, argv, scope.c_str(),
-                          long_options, &option_index);
-        if (opt == -1)
-            break;
-
         switch (opt)
         {
         case 0:
-            if (long_options[option_index].name == "name")
+            switch (o)
             {
-                cout << "option " << long_options[option_index].name;
-                if (optarg)
-                    cout << " with arg " << optarg;
-                cout << endl;
-            }
-            if (long_options[option_index].name == "san")
-            {
-                san = san.empty() ? optarg : san + " " + optarg;
-            }
-            if (long_options[option_index].name == "https")
-            {
+            case LONGOPT_HTTPS:
                 https.active = true;
-                if (__CHECK_SUBOPT_ARG)
+                if (__CHECK_SUBOPT_ARGS)
                 {
                     subopt.cstr = optarg;
                     while (__CHECK_SUBOPT)
@@ -149,33 +155,25 @@ int main(int argc, char *argv[])
                         switch (__GET_SUBOPTS)
                         {
                         case SUBOPT_DIR:
-                            __IFCHECK_SUBOPT_VAL
+                            __CHECK_SUBOPT_DIR
                             https.dir = subopt.value;
                             break;
                         case SUBOPT_NAME:
-                            __IFCHECK_SUBOPT_VAL
+                            __CHECK_SUBOPT_NAME
                             https.name = subopt.value;
                             break;
                         }
                     }
                 }
-            }
-            if (long_options[option_index].name == "port")
-            {
-                port = atoi(optarg);
-            }
-            if (long_options[option_index].name == "root")
-            {
-                root = optarg;
-            }
-            if (long_options[option_index].name == "index")
-            {
+                break;
+            case LONGOPT_INDEX:
                 index = optarg;
-            }
-            if (long_options[option_index].name == "log")
-            {
+                break;
+            case LONGOPT_LOCATION:
+                break;
+            case LONGOPT_LOG:
                 log.active = true;
-                if (__CHECK_SUBOPT_ARG)
+                if (__CHECK_SUBOPT_ARGS)
                 {
                     subopt.cstr = optarg;
                     while (__CHECK_SUBOPT)
@@ -183,28 +181,33 @@ int main(int argc, char *argv[])
                         switch (__GET_SUBOPTS)
                         {
                         case SUBOPT_DIR:
-                            __IFCHECK_SUBOPT_VAL
+                            __CHECK_SUBOPT_DIR
                             log.dir = subopt.value;
                             break;
                         case SUBOPT_NAME:
-                            __IFCHECK_SUBOPT_VAL
+                            __CHECK_SUBOPT_NAME
                             log.name = subopt.value;
                             break;
                         }
                     }
                 }
-            }
-            if (long_options[option_index].name == "location")
-            {
-                // TODO
-            }
-            if (long_options[option_index].name == "php")
-            {
-                // TODO
+                break;
+            case LONGOPT_NAME:
+                break;
+            case LONGOPT_PHP:
+                break;
+            case LONGOPT_PORT:
+                port = atoi(optarg);
+                break;
+            case LONGOPT_ROOT:
+                root = optarg;
+                break;
+            case LONGOPT_SAN:
+                san = san.empty() ? optarg : san + " " + optarg;
+                break;
             }
             break;
         default:
-            cout << "opt returned char code " << opt << "/0" << oct << opt << endl;
             usage(argv[0]);
         }
     }
@@ -213,5 +216,14 @@ int main(int argc, char *argv[])
     cout << "https: " << https.active << " " << https.dir << " " << https.name << endl;
     cout << "port: " << port << endl;
     cout << "log: " << log.active << " " << log.dir << " " << log.name << endl;
+
+    if (optind < argc)
+    {
+        cout << "non-option ARGV-elements: " << endl;
+        while (optind < argc)
+            cout << argv[optind++];
+        cout << endl;
+    }
+
     return 0;
 }
