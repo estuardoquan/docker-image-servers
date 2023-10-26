@@ -9,6 +9,16 @@
         "utility": "cpp",
         "string": "cpp",
         "ostream": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "any": "cpp",
+        "iostream": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "cstddef": "cpp",
+        "cwchar": "cpp",
+        "memory_resource": "cpp",
+        "string_view": "cpp",
+        "new": "cpp",
+        "sstream": "cpp"
     }
 }

@@ -158,9 +158,10 @@ function __print_php_files_location_block()
 function __print_php_fastcgi_location_block(){
     local php=${1?Error}
     __start_location_block "~ \.php"
+    __print_property "fastcgi_pass" "${php}";
+    # Belongs in a separate php_fastcgi.conf
     __print_property "fastcgi_index" "index.php";
     __print_property "fastcgi_param" "SCRIPT_FILENAME" "\$document_root\$fastcgi_script_name";
-    __print_property "fastcgi_pass" "${php}";
     __print_property "fastcgi_split_path_info" "^(.+\.php)(/.+)$"
     __print_property "fastcgi_intercept_errors" "off"
     __print_property "fastcgi_buffers" "4" "16k"
@@ -174,6 +175,7 @@ function __print_php_fastcgi_location_block(){
 }
 
 function __print_proxy_conf(){
+    # Belongs in a separate proxy.conf
     __print_property "proxy_read_timeout" "43200"
     __print_property "proxy_connect_timeout" "3"
     __print_property "proxy_buffering" "off"
@@ -195,6 +197,7 @@ function __print_https_conf(){
     local name=${2:-site}
     __print_property "ssl_certificate"  "${path}/${name}.crt"
     __print_property "ssl_certificate_key"  "${path}/${name}.key"
+    # Belongs in a separate https.conf
     __print_property "ssl_session_timeout" "1d"
     __print_property "ssl_session_cache" "shared:SSL:50m"
     __print_property "ssl_session_tickets" "off"
