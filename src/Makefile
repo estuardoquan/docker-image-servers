@@ -1,4 +1,4 @@
 all: out
 
 out: 
-	g++ -o ngconf.out ngconf.cpp
+	g++ -o print_ngconf print_ngconf.cpp

@@ -4,7 +4,8 @@ USER root
 
 RUN apk update
 
-COPY ./bin /usr/local/bin
+RUN mkmdir -p /src
+COPY ./src /src
 
 RUN chmod +x /usr/local/bin/certwatch 
 RUN chmod +x /usr/local/bin/ngconf.d/ngconf 
