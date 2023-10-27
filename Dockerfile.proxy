@@ -1,6 +1,0 @@
-FROM proxymurder/nginx:latest
-
-RUN apk add --no-cache jq
-
-COPY ./docker-entrypoint-proxy /docker-entrypoint
-RUN chmod +x /docker-entrypoint 
