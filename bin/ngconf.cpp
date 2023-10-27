@@ -42,11 +42,11 @@ int main(int argc, char *argv[])
     {
         struct Location
         {
-            bool active;
-            string conf;
+            bool active = false;
+            string conf = "";
             string path = "/";
-            string type;
-            string val;
+            string type = "try_files";
+            string val = "index.html";
             string other[SIZE_ARR];
             string get_conf()
             {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
             }
             string get_ssl()
             {
-                return active ? "ssl; " : "; ";
+                return active ? " ssl; " : "; ";
             }
             string get_block()
             {
@@ -106,11 +106,11 @@ int main(int argc, char *argv[])
             string path;
             string get_access()
             {
-                return "access_log " + path + "/" + *file_name + "; ";
+                return "access_log " + path + "/" + *file_name + ".access.log; ";
             }
             string get_error()
             {
-                return "error_log " + path + "/" + *file_name + "; ";
+                return "error_log " + path + "/" + *file_name + ".error.log; ";
             }
             string get_block()
             {
@@ -167,225 +167,224 @@ int main(int argc, char *argv[])
             }
             cout << "}" << endl;
         }
-
-        struct Server server = {
-            port : "80",
-            index : "",
-            root : "",
-            domain : {
-                subject : "localhost",
-                alternate : ""
-            },
-            https : {
-                active : false,
-                conf : "/etc/nginx/extra/default.https.conf",
-                file_name : "site",
-                path : "/path/to/cert",
-            },
-            log : {
-                active : false,
-                file_name : &server.domain.subject,
-                path : "/path/to/cert",
-            },
-            locations : {},
-        };
-
-        int err = 0;
-        int l = 0;
-        while (1)
-        {
-            static const char *scope = "i:l::n:p:r:";
-            static struct option options[] = {
-                {"index", required_argument, 0, 'i'},
-                {"location", optional_argument, 0, 'l'},
-                {"name", required_argument, 0, 'n'},
-                {"port", required_argument, 0, 'p'},
-                {"root", required_argument, 0, 'r'},
-                {"https", optional_argument, 0, 0},
-                {"log", optional_argument, 0, 0},
-                {"san", required_argument, 0, 0},
-                NULL,
-            };
-            static struct suboption suboptions[] = {
-                {"conf"},
-                {"file_name"},
-                {"other"},
-                {"path"},
-                {"type"},
-                {"val"},
-            };
-            enum LONGOPTS
-            {
-                LONGOPT_HTTPS = 5,
-                LONGOPT_LOG,
-                LONGOPT_SAN,
-            };
-            enum SUBOPTS
-            {
-                SUBOPT_CONF,
-                SUBOPT_FILENAME,
-                SUBOPT_OTHER,
-                SUBOPT_PATH,
-                SUBOPT_TYPE,
-                SUBOPT_VAL,
-            };
-            static char *const tokens[] = {
-                suboptions[SUBOPT_CONF].name,
-                suboptions[SUBOPT_FILENAME].name,
-                suboptions[SUBOPT_OTHER].name,
-                suboptions[SUBOPT_PATH].name,
-                suboptions[SUBOPT_TYPE].name,
-                suboptions[SUBOPT_VAL].name,
-                NULL,
-            };
-            static int opt;
-            static int longopt;
-
-            static char *subopt;
-            static char *subopt_arg;
-
-            opt = GET_LONGOPT;
-            if (opt == -1)
-                break;
-            switch (opt)
-            {
-            case 0:
-                switch (longopt)
-                {
-                case LONGOPT_HTTPS:
-                    if (CHECK_OPT_ARG)
-                    {
-                        subopt = optarg;
-                        while (CHECK_SUBOPT)
-                        {
-                            switch (GET_SUBOPT)
-                            {
-                            case SUBOPT_PATH:
-                                CHECK_SUBOPT_PATH;
-                                server.https.path = subopt_arg;
-                                break;
-                            case SUBOPT_FILENAME:
-                                CHECK_SUBOPT_FILENAME;
-                                server.https.file_name = subopt_arg;
-                                break;
-                            }
-                        }
-                    }
-                    server.https.active = true;
-                    break;
-                case LONGOPT_LOG:
-                    if (CHECK_OPT_ARG)
-                    {
-                        subopt = optarg;
-                        while (CHECK_SUBOPT)
-                        {
-                            switch (GET_SUBOPT)
-                            {
-                            case SUBOPT_PATH:
-                                CHECK_SUBOPT_PATH;
-                                server.log.path = subopt_arg;
-                                break;
-                            }
-                        }
-                    }
-                    server.log.active = true;
-                    break;
-                case LONGOPT_SAN:
-                    server.domain.alternate = optarg;
-                    break;
-                }
-                break;
-            case 'i':
-                server.index = optarg;
-                break;
-            case 'l':
-                if (l < SIZE_ARR)
-                {
-                    static int o = 0;
-                    if (CHECK_OPT_ARG)
-                    {
-                        subopt = optarg;
-                        while (CHECK_SUBOPT)
-                        {
-                            switch (GET_SUBOPT)
-                            {
-                            case SUBOPT_CONF:
-                                CHECK_SUBOPT_CONF;
-                                server.locations[l].conf = subopt_arg;
-                                break;
-                            case SUBOPT_PATH:
-                                CHECK_SUBOPT_PATH;
-                                server.locations[l].path = subopt_arg;
-                                break;
-                            case SUBOPT_OTHER:
-                                if (o < SIZE_ARR)
-                                {
-                                    CHECK_SUBOPT_OTHER;
-                                    server.locations[l].other[o++] = subopt_arg;
-                                }
-                                break;
-                            case SUBOPT_TYPE:
-                                CHECK_SUBOPT_TYPE;
-                                server.locations[l].type = subopt_arg;
-                                break;
-                            case SUBOPT_VAL:
-                                CHECK_SUBOPT_VAL;
-                                server.locations[l].val = subopt_arg;
-                                break;
-                            }
-                        }
-                    }
-                    server.locations[l++].active = true;
-                }
-                break;
-            case 'n':
-                server.domain.subject = optarg;
-                break;
-            case 'p':
-            {
-                istringstream stream(optarg);
-                stream >> server.port;
-            }
-            case 'r':
-                server.root = optarg;
-                break;
-            default:
-                usage(argv[0]);
-            }
-        }
-        server.print();
-
-        exit(EXIT_SUCCESS);
-    }
-
-    void
-    usage(const char *argv0)
-    {
-        cout << "Usage: "
-             << argv0
-             << endl;
-        exit(EXIT_FAILURE);
-    }
-    void usage_subopt(const char *subopt)
-    {
-        cout << "Usage: --option [" << subopt << "= ] " << endl;
-        exit(EXIT_FAILURE);
-    }
-    int check_opt_arg(const int argc, char *argv[], int &optind, char *(&optarg))
-    {
-        return (optarg == NULL && optind < argc && argv[optind][0] != '-')
-                   ? (bool)(optarg = argv[optind++])
-                   : (optarg != NULL);
-    }
-    int check_subopt(const char &c, const int e)
-    {
-        return (c != '\0' && !e);
-    }
-    void check_subopt_arg(const char *const token, const char *subopt_arg, int &e)
-    {
-        if (subopt_arg == NULL)
-        {
-            e = 1;
-            usage_subopt(token);
-        }
     };
+    struct Server server = {
+        port : "80",
+        index : "",
+        root : "",
+        domain : {
+            subject : "localhost",
+            alternate : ""
+        },
+        https : {
+            active : false,
+            conf : "/etc/nginx/extra/default.https.conf",
+            file_name : "site",
+            path : "/path/to/cert",
+        },
+        log : {
+            active : false,
+            file_name : &server.domain.subject,
+            path : "/var/log/nginx",
+        },
+        locations : {},
+    };
+
+    int err = 0;
+    int l = 0;
+    while (1)
+    {
+        static const char *scope = "i:l::n:p:r:";
+        static struct option options[] = {
+            {"index", required_argument, 0, 'i'},
+            {"location", optional_argument, 0, 'l'},
+            {"name", required_argument, 0, 'n'},
+            {"port", required_argument, 0, 'p'},
+            {"root", required_argument, 0, 'r'},
+            {"https", optional_argument, 0, 0},
+            {"log", optional_argument, 0, 0},
+            {"san", required_argument, 0, 0},
+            NULL,
+        };
+        static struct suboption suboptions[] = {
+            {"conf"},
+            {"file_name"},
+            {"other"},
+            {"path"},
+            {"type"},
+            {"val"},
+        };
+        enum LONGOPTS
+        {
+            LONGOPT_HTTPS = 5,
+            LONGOPT_LOG,
+            LONGOPT_SAN,
+        };
+        enum SUBOPTS
+        {
+            SUBOPT_CONF,
+            SUBOPT_FILENAME,
+            SUBOPT_OTHER,
+            SUBOPT_PATH,
+            SUBOPT_TYPE,
+            SUBOPT_VAL,
+        };
+        static char *const tokens[] = {
+            suboptions[SUBOPT_CONF].name,
+            suboptions[SUBOPT_FILENAME].name,
+            suboptions[SUBOPT_OTHER].name,
+            suboptions[SUBOPT_PATH].name,
+            suboptions[SUBOPT_TYPE].name,
+            suboptions[SUBOPT_VAL].name,
+            NULL,
+        };
+        static int opt;
+        static int longopt;
+
+        static char *subopt;
+        static char *subopt_arg;
+
+        opt = GET_LONGOPT;
+        if (opt == -1)
+            break;
+        switch (opt)
+        {
+        case 0:
+            switch (longopt)
+            {
+            case LONGOPT_HTTPS:
+                if (CHECK_OPT_ARG)
+                {
+                    subopt = optarg;
+                    while (CHECK_SUBOPT)
+                    {
+                        switch (GET_SUBOPT)
+                        {
+                        case SUBOPT_PATH:
+                            CHECK_SUBOPT_PATH;
+                            server.https.path = subopt_arg;
+                            break;
+                        case SUBOPT_FILENAME:
+                            CHECK_SUBOPT_FILENAME;
+                            server.https.file_name = subopt_arg;
+                            break;
+                        }
+                    }
+                }
+                server.https.active = true;
+                break;
+            case LONGOPT_LOG:
+                if (CHECK_OPT_ARG)
+                {
+                    subopt = optarg;
+                    while (CHECK_SUBOPT)
+                    {
+                        switch (GET_SUBOPT)
+                        {
+                        case SUBOPT_PATH:
+                            CHECK_SUBOPT_PATH;
+                            server.log.path = subopt_arg;
+                            break;
+                        }
+                    }
+                }
+                server.log.active = true;
+                break;
+            case LONGOPT_SAN:
+                server.domain.alternate = optarg;
+                break;
+            }
+            break;
+        case 'i':
+            server.index = optarg;
+            break;
+        case 'l':
+            if (l < SIZE_ARR)
+            {
+                static int o = 0;
+                if (CHECK_OPT_ARG)
+                {
+                    subopt = optarg;
+                    while (CHECK_SUBOPT)
+                    {
+                        switch (GET_SUBOPT)
+                        {
+                        case SUBOPT_CONF:
+                            CHECK_SUBOPT_CONF;
+                            server.locations[l].conf = subopt_arg;
+                            break;
+                        case SUBOPT_PATH:
+                            CHECK_SUBOPT_PATH;
+                            server.locations[l].path = subopt_arg;
+                            break;
+                        case SUBOPT_OTHER:
+                            if (o < SIZE_ARR)
+                            {
+                                CHECK_SUBOPT_OTHER;
+                                server.locations[l].other[o++] = subopt_arg;
+                            }
+                            break;
+                        case SUBOPT_TYPE:
+                            CHECK_SUBOPT_TYPE;
+                            server.locations[l].type = subopt_arg;
+                            break;
+                        case SUBOPT_VAL:
+                            CHECK_SUBOPT_VAL;
+                            server.locations[l].val = subopt_arg;
+                            break;
+                        }
+                    }
+                }
+                server.locations[l++].active = true;
+            }
+            break;
+        case 'n':
+            server.domain.subject = optarg;
+            break;
+        case 'p':
+        {
+            istringstream stream(optarg);
+            stream >> server.port;
+        }
+        case 'r':
+            server.root = optarg;
+            break;
+        default:
+            usage(argv[0]);
+        }
+    }
+    server.print();
+
+    exit(EXIT_SUCCESS);
+}
+
+void usage(const char *argv0)
+{
+    cout << "Usage: "
+         << argv0
+         << endl;
+    exit(EXIT_FAILURE);
+}
+void usage_subopt(const char *subopt)
+{
+    cout << "Usage: --option [" << subopt << "= ] " << endl;
+    exit(EXIT_FAILURE);
+}
+int check_opt_arg(const int argc, char *argv[], int &optind, char *(&optarg))
+{
+    return (optarg == NULL && optind < argc && argv[optind][0] != '-')
+               ? (bool)(optarg = argv[optind++])
+               : (optarg != NULL);
+}
+int check_subopt(const char &c, const int e)
+{
+    return (c != '\0' && !e);
+}
+void check_subopt_arg(const char *const token, const char *subopt_arg, int &e)
+{
+    if (subopt_arg == NULL)
+    {
+        e = 1;
+        usage_subopt(token);
+    }
+};
