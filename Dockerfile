@@ -4,12 +4,10 @@ USER root
 
 RUN apk update
 
-RUN mkmdir -p /src
-COPY ./src /src
+COPY ./bin/certwatch /usr/local/bin/certwatch
+COPY ./bin/print_ngconf /usr/local/bin/print_ngconf
 
-RUN chmod +x /usr/local/bin/certwatch 
-RUN chmod +x /usr/local/bin/ngconf.d/ngconf 
-RUN ln -s /usr/local/bin/ngconf.d/ngconf /usr/local/bin/ngconf
+RUN chmod +x /usr/local/bin/certwatch /usr/local/bin/print_ngconf
 
 FROM ngconf-cli AS nginx-server
 # Install dependencies

@@ -40,6 +40,65 @@ int main(int argc, char *argv[])
     };
     struct Server
     {
+        struct Https
+        {
+            bool active;
+            string conf;
+            string file_name;
+            string path;
+            string get_conf()
+            {
+                return "include " + conf + "; ";
+            }
+            string get_crt()
+            {
+                return "ssl_certificate " + path + "/" + file_name + ".crt; ";
+            }
+            string get_key()
+            {
+                return "ssl_certificate_key " + path + "/" + file_name + ".key; ";
+            }
+            string get_ssl()
+            {
+                return active ? " ssl; " : "; ";
+            }
+            string get_block()
+            {
+                return "http2 on; " + get_crt() + get_key() + get_conf();
+            }
+        };
+        struct Domain
+        {
+            string subject;
+            string alternate;
+            string get_san()
+            {
+                return !alternate.empty() ? " " + alternate + "; " : "; ";
+            }
+            string get_line()
+            {
+                return "server_name " + subject + get_san();
+                ;
+            }
+        };
+        struct Log
+        {
+            bool active;
+            const string *file_name;
+            string path;
+            string get_access()
+            {
+                return "access_log " + path + "/" + *file_name + ".access.log; ";
+            }
+            string get_error()
+            {
+                return "error_log " + path + "/" + *file_name + ".error.log; ";
+            }
+            string get_block()
+            {
+                return get_access() + get_error();
+            }
+        };
         struct Location
         {
             bool active = false;
@@ -72,65 +131,6 @@ int main(int argc, char *argv[])
                 return "location " + path + " { " + get_typeval() + get_other() + get_conf() + "} ";
             }
         };
-        struct Https
-        {
-            bool active;
-            string conf;
-            string file_name;
-            string path;
-            string get_conf()
-            {
-                return "include " + conf + "; ";
-            }
-            string get_crt()
-            {
-                return "ssl_certificate " + path + "/" + file_name + ".crt; ";
-            }
-            string get_key()
-            {
-                return "ssl_certificate_key " + path + "/" + file_name + ".key; ";
-            }
-            string get_ssl()
-            {
-                return active ? " ssl; " : "; ";
-            }
-            string get_block()
-            {
-                return "http2 on; " + get_crt() + get_key() + get_conf();
-            }
-        };
-        struct Log
-        {
-            bool active;
-            const string *file_name;
-            string path;
-            string get_access()
-            {
-                return "access_log " + path + "/" + *file_name + ".access.log; ";
-            }
-            string get_error()
-            {
-                return "error_log " + path + "/" + *file_name + ".error.log; ";
-            }
-            string get_block()
-            {
-                return get_access() + get_error();
-            }
-        };
-        struct Domain
-        {
-            string subject;
-            string alternate;
-            string get_san()
-            {
-                return !alternate.empty() ? " " + alternate + "; " : "; ";
-            }
-            string get_line()
-            {
-                return "server_name " + subject + get_san();
-                ;
-            }
-        };
         string port;
         string index;
         string root;
@@ -138,27 +138,16 @@ int main(int argc, char *argv[])
         struct Https https;
         struct Log log;
         struct Location locations[SIZE_ARR];
-        string get_listen_line()
-        {
-            return "listen " + port + https.get_ssl();
-        }
-        string get_root_line()
-        {
-            return !root.empty() ? "root " + root + "; " : "";
-        }
-        string get_index_line()
-        {
-            return !index.empty() ? "index " + index + "; " : "";
-        }
         void print()
         {
+            cout << port << " " << root << endl;
             cout << "server { "
-                 << get_listen_line()
-                 << (https.active ? https.get_block() : "")
+                 << "listen " + port + https.get_ssl()
                  << (log.active ? log.get_block() : "")
+                 << (https.active ? https.get_block() : "")
                  << domain.get_line()
-                 << get_root_line()
-                 << get_index_line();
+                 << (!root.empty() ? "root " + root + "; " : "")
+                 << (!index.empty() ? "index " + index + "; " : "");
             for (auto &location : locations)
             {
                 if (location.active == 0)
@@ -342,10 +331,7 @@ int main(int argc, char *argv[])
             server.domain.subject = optarg;
             break;
         case 'p':
-        {
-            istringstream stream(optarg);
-            stream >> server.port;
-        }
+            server.port = optarg;
         case 'r':
             server.root = optarg;
             break;
