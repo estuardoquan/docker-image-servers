@@ -1,22 +1,20 @@
 #include <getopt.h>
 
 #include <iostream>
-#include <sstream>
 #include <string>
 
 using std::cerr;
 using std::cout;
 using std::endl;
 
-using std::istringstream;
 using std::string;
 
 #define SIZE_ARR 10
 #define SIZE_STR 10
 
-#define CHECK_OPT_ARG check_opt_arg(argc, argv, optind, optarg)
+#define CHECK_OPTARG check_optarg(argc, argv, optind, optarg)
 #define CHECK_SUBOPT check_subopt(*subopt, err)
-#define CHECK_SUBOPT_ARG(LONGOPT) check_subopt_arg(tokens[LONGOPT], subopt_arg, err)
+#define CHECK_SUBOPT_ARG(SUBOPT) check_subopt_arg(tokens[SUBOPT], subopt_arg, err)
 #define CHECK_SUBOPT_CONF CHECK_SUBOPT_ARG(SUBOPT_CONF)
 #define CHECK_SUBOPT_FILENAME CHECK_SUBOPT_ARG(SUBOPT_FILENAME)
 #define CHECK_SUBOPT_OTHER CHECK_SUBOPT_ARG(SUBOPT_OTHER)
@@ -26,7 +24,7 @@ using std::string;
 #define GET_LONGOPT getopt_long(argc, argv, scope, options, &longopt)
 #define GET_SUBOPT getsubopt(&subopt, tokens, &subopt_arg)
 
-int check_opt_arg(const int argc, char *argv[], int &optind, char *(&optarg));
+int check_optarg(const int argc, char *argv[], int &optind, char *(&optarg));
 int check_subopt(const char &c, const int e);
 void check_subopt_arg(const char *const token, const char *subopt_arg, int &e);
 void usage(const char *argv0);
@@ -64,7 +62,7 @@ int main(int argc, char *argv[])
             }
             string get_block()
             {
-                return "http2 on; " + get_crt() + get_key() + get_conf();
+                return active ? "http2 on; " + get_crt() + get_key() + get_conf() : "";
             }
         };
         struct Domain
@@ -83,9 +81,9 @@ int main(int argc, char *argv[])
         };
         struct Log
         {
-            bool active;
+            bool active = false;
             const string *file_name;
-            string path;
+            string path = "/var/log/nginx";
             string get_access()
             {
                 return "access_log " + path + "/" + *file_name + ".access.log; ";
@@ -96,7 +94,7 @@ int main(int argc, char *argv[])
             }
             string get_block()
             {
-                return get_access() + get_error();
+                return active ? get_access() + get_error() : "";
             }
         };
         struct Location
@@ -140,11 +138,10 @@ int main(int argc, char *argv[])
         struct Location locations[SIZE_ARR];
         void print()
         {
-            cout << port << " " << root << endl;
             cout << "server { "
                  << "listen " + port + https.get_ssl()
-                 << (log.active ? log.get_block() : "")
-                 << (https.active ? https.get_block() : "")
+                 << https.get_block()
+                 << log.get_block()
                  << domain.get_line()
                  << (!root.empty() ? "root " + root + "; " : "")
                  << (!index.empty() ? "index " + index + "; " : "");
@@ -185,15 +182,21 @@ int main(int argc, char *argv[])
     {
         static const char *scope = "i:l::n:p:r:";
         static struct option options[] = {
-            {"index", required_argument, 0, 'i'},
-            {"location", optional_argument, 0, 'l'},
-            {"name", required_argument, 0, 'n'},
-            {"port", required_argument, 0, 'p'},
-            {"root", required_argument, 0, 'r'},
-            {"https", optional_argument, 0, 0},
-            {"log", optional_argument, 0, 0},
-            {"san", required_argument, 0, 0},
+            {"index", 1, 0, 'i'},
+            {"location", 2, 0, 'l'},
+            {"name", 1, 0, 'n'},
+            {"port", 1, 0, 'p'},
+            {"root", 1, 0, 'r'},
+            {"https", 2, 0, 0},
+            {"log", 2, 0, 0},
+            {"san", 1, 0, 0},
             NULL,
+        };
+        enum LONGOPTS
+        {
+            LONGOPT_HTTPS = 5,
+            LONGOPT_LOG,
+            LONGOPT_SAN,
         };
         static struct suboption suboptions[] = {
             {"conf"},
@@ -202,12 +205,6 @@ int main(int argc, char *argv[])
             {"path"},
             {"type"},
             {"val"},
-        };
-        enum LONGOPTS
-        {
-            LONGOPT_HTTPS = 5,
-            LONGOPT_LOG,
-            LONGOPT_SAN,
         };
         enum SUBOPTS
         {
@@ -242,7 +239,7 @@ int main(int argc, char *argv[])
             switch (longopt)
             {
             case LONGOPT_HTTPS:
-                if (CHECK_OPT_ARG)
+                if (CHECK_OPTARG)
                 {
                     subopt = optarg;
                     while (CHECK_SUBOPT)
@@ -263,7 +260,7 @@ int main(int argc, char *argv[])
                 server.https.active = true;
                 break;
             case LONGOPT_LOG:
-                if (CHECK_OPT_ARG)
+                if (CHECK_OPTARG)
                 {
                     subopt = optarg;
                     while (CHECK_SUBOPT)
@@ -291,7 +288,7 @@ int main(int argc, char *argv[])
             if (l < SIZE_ARR)
             {
                 static int o = 0;
-                if (CHECK_OPT_ARG)
+                if (CHECK_OPTARG)
                 {
                     subopt = optarg;
                     while (CHECK_SUBOPT)
@@ -332,31 +329,21 @@ int main(int argc, char *argv[])
             break;
         case 'p':
             server.port = optarg;
+            break;
         case 'r':
             server.root = optarg;
             break;
         default:
             usage(argv[0]);
+            break;
         }
     }
-    server.print();
 
+    server.print();
     exit(EXIT_SUCCESS);
 }
 
-void usage(const char *argv0)
-{
-    cout << "Usage: "
-         << argv0
-         << endl;
-    exit(EXIT_FAILURE);
-}
-void usage_subopt(const char *subopt)
-{
-    cout << "Usage: --option [" << subopt << "= ] " << endl;
-    exit(EXIT_FAILURE);
-}
-int check_opt_arg(const int argc, char *argv[], int &optind, char *(&optarg))
+int check_optarg(const int argc, char *argv[], int &optind, char *(&optarg))
 {
     return (optarg == NULL && optind < argc && argv[optind][0] != '-')
                ? (bool)(optarg = argv[optind++])
@@ -373,4 +360,16 @@ void check_subopt_arg(const char *const token, const char *subopt_arg, int &e)
         e = 1;
         usage_subopt(token);
     }
-};
+}
+void usage(const char *argv0)
+{
+    cout << "Usage: "
+         << argv0
+         << endl;
+    exit(EXIT_FAILURE);
+}
+void usage_subopt(const char *subopt)
+{
+    cout << "Usage: --option [" << subopt << "= ] " << endl;
+    exit(EXIT_FAILURE);
+}
