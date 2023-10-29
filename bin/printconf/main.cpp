@@ -15,12 +15,14 @@ using std::string;
 #define CHECK_OPTARG check_optarg(argc, argv, optind, optarg)
 #define CHECK_SUBOPT check_subopt(*subopt, err)
 #define CHECK_SUBOPT_ARG(SUBOPT) check_subopt_arg(tokens[SUBOPT], subopt_arg, err)
+
 #define CHECK_SUBOPT_CONF CHECK_SUBOPT_ARG(SUBOPT_CONF)
 #define CHECK_SUBOPT_FILENAME CHECK_SUBOPT_ARG(SUBOPT_FILENAME)
 #define CHECK_SUBOPT_OTHER CHECK_SUBOPT_ARG(SUBOPT_OTHER)
 #define CHECK_SUBOPT_PATH CHECK_SUBOPT_ARG(SUBOPT_PATH)
 #define CHECK_SUBOPT_TYPE CHECK_SUBOPT_ARG(SUBOPT_TYPE)
 #define CHECK_SUBOPT_VAL CHECK_SUBOPT_ARG(SUBOPT_VAL)
+
 #define GET_LONGOPT getopt_long(argc, argv, scope, options, &longopt)
 #define GET_SUBOPT getsubopt(&subopt, tokens, &subopt_arg)
 
