@@ -1,8 +1,7 @@
 all:
 
 build:
-	cmake -B bin/printconf/build -S bin/printconf
-
+	cmake -B ./src/bin -S ./src
 
 ngconf: ngconf-core ngconf-php
 

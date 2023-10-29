@@ -1,23 +1,29 @@
-FROM nginx:alpine AS ngconf-cli
+FROM nginx:alpine AS builder
 
 USER root
 
 RUN apk update
+RUN apk add --no-cache \
+    cmake
 
-COPY ./bin/certwatch /usr/local/bin/certwatch
-COPY ./bin/print_ngconf /usr/local/bin/print_ngconf
+COPY ./src /src
 
-RUN chmod +x /usr/local/bin/certwatch /usr/local/bin/print_ngconf
+RUN cmake -B /src/bin -S /src
+RUN make --directory /src/bin
 
-FROM ngconf-cli AS nginx-server
+FROM nginx:alpine
 # Install dependencies
 RUN apk update
 RUN apk add --no-cache \
     inotify-tools
 
+COPY --from=builder /src/bin/printconf /usr/local/bin/printconf
 # Install executables
 COPY ./docker-entrypoint /docker-entrypoint
+COPY ./certwatch /usr/local/bin/certwatch
+
 RUN chmod +x /docker-entrypoint 
+RUN chmod +x /usr/local/bin/certwatch
 
 # ENV STEPPATH=/var/local/step
 
