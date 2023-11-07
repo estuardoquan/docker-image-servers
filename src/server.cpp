@@ -1,11 +1,8 @@
 #include <iostream>
 #include <string>
-#include <optcheck.h>
-
 #include "server.h"
-using std::cerr;
-using std::cout;
-using std::endl;
+
+#include <optcheck.h>
 
 typedef enum
 {
@@ -111,7 +108,6 @@ int main(int argc, char *argv[])
                         {
                         case SUBOPT_PATH:
                             CHECK_SUBOPTARG(SUBOPT_PATH);
-                            std::cout << err << std::endl;
                             server.https.path = suboptarg;
                             break;
                         case SUBOPT_FILENAME:
@@ -208,14 +204,14 @@ int main(int argc, char *argv[])
 
 void usage(const char *argv0)
 {
-    cout << "Usage: "
-         << argv0
-         << endl;
+    std::cout << "Usage: "
+              << argv0
+              << std::endl;
     exit(EXIT_FAILURE);
 }
 void usage_subopt(const char *subopt)
 {
-    cout << "Usage: --option [" << subopt << "= ] " << endl;
+    std::cout << "Usage: --option [" << subopt << "= ] " << std::endl;
     exit(EXIT_FAILURE);
 }
 
@@ -294,18 +290,18 @@ std::string Log::get_block()
 // Declare Server methods
 void Server::print()
 {
-    cout << "server { "
-         << "listen " + port + https.get_ssl()
-         << https.get_block()
-         << domain.get_line()
-         << log.get_block()
-         << (!root.empty() ? "root " + root + "; " : "")
-         << (!index.empty() ? "index " + index + "; " : "");
+    std::cout << "server { "
+              << "listen " + port + https.get_ssl()
+              << https.get_block()
+              << domain.get_line()
+              << log.get_block()
+              << (!root.empty() ? "root " + root + "; " : "")
+              << (!index.empty() ? "index " + index + "; " : "");
     for (auto &location : locations)
     {
         if (location.active == 0)
             break;
-        cout << location.get_block();
+        std::cout << location.get_block();
     }
-    cout << "}" << endl;
+    std::cout << "}" << std::endl;
 }
