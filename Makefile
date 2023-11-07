@@ -1,7 +1,10 @@
 all:
 
-build:
-	cmake -B ./src/bin -S ./src
+out:
+	cmake -B ./src/out -S ./src
+
+run: 
+	./src/out/server $(options)
 
 ngconf: ngconf-core ngconf-php
 

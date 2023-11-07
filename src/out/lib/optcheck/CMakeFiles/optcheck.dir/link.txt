@@ -1,0 +1,2 @@
+/usr/bin/ar qc liboptcheck.a CMakeFiles/optcheck.dir/optcheck.cpp.o
+/usr/bin/ranlib liboptcheck.a

@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/server.dir/server.cpp.o -o server   -L/home/estuardoquan/Projects/proxy.d/server/src/lib/optcheck  -Wl,-rpath,/home/estuardoquan/Projects/proxy.d/server/src/lib/optcheck lib/optcheck/liboptcheck.a 

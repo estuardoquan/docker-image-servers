@@ -1,0 +1,6 @@
+/home/estuardoquan/Projects/proxy.d/server/src/out/CMakeFiles/server.dir
+/home/estuardoquan/Projects/proxy.d/server/src/out/CMakeFiles/edit_cache.dir
+/home/estuardoquan/Projects/proxy.d/server/src/out/CMakeFiles/rebuild_cache.dir
+/home/estuardoquan/Projects/proxy.d/server/src/out/lib/optcheck/CMakeFiles/optcheck.dir
+/home/estuardoquan/Projects/proxy.d/server/src/out/lib/optcheck/CMakeFiles/edit_cache.dir
+/home/estuardoquan/Projects/proxy.d/server/src/out/lib/optcheck/CMakeFiles/rebuild_cache.dir
