@@ -1,15 +1,22 @@
+CSRC=./src
+CBUILD=${CSRC}/build
+CFILE=/main
+
 all:
 
-out:
-	cmake -B ./src/out -S ./src
+cbuild:
+	cmake -B $(CBUILD) -S $(CSRC)
 
-run: 
-	./src/out/server $(options)
+crun: 
+	$(COUT)$(CFILE) $(ARGS)
 
-ngconf: ngconf-core ngconf-php
+cleanup:
+	rm -r $(CBUILD)
 
-ngconf-core:
+dbuild: nginx
+
+service-nginx:
 	docker build -t proxymurder/nginx:latest -f Dockerfile ./
 
-ngconf-php:
-	docker build -t proxymurder/nginx:php -f Dockerfile.php ./
+
+	

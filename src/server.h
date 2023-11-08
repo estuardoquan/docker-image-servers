@@ -56,6 +56,6 @@ struct Server
     struct Location locations[10];
     void print();
 };
-
+int test(int argc, char *argv[]);
 void usage(const char *argv0);
 void usage_subopt(const char *subopt);

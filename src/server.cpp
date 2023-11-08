@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
-#include "server.h"
+#include <checkopt.h>
 
-#include <optcheck.h>
+#include "server.h"
 
 typedef enum
 {
@@ -25,7 +25,7 @@ typedef enum
     SUBOPT_VAL,
 } SUBOPTS;
 
-int main(int argc, char *argv[])
+int test(int argc, char *argv[])
 {
 
     struct Server server = {

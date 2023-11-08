@@ -1,4 +1,4 @@
-#include "optcheck.h"
+#include "checkopt.h"
 
 int check_optarg(const int &argc, char **(&argv), int &optind, char *(&optarg))
 {
