@@ -1,19 +1,19 @@
-CSRC=./src
-CBUILD=${CSRC}/build
+CDIR=./src
+CBUILD=${CDIR}/build
 CFILE=/main
 
 all:
 
 cbuild:
-	cmake -B $(CBUILD) -S $(CSRC)
+	cmake -B $(CBUILD) -S $(CDIR)
 
 crun: 
-	$(COUT)$(CFILE) $(ARGS)
+	$(CBUILD)$(CFILE) $(ARGS)
 
 cleanup:
 	rm -r $(CBUILD)
 
-dbuild: nginx
+dbuild: service-nginx
 
 service-nginx:
 	docker build -t proxymurder/nginx:latest -f Dockerfile ./

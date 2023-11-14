@@ -10,9 +10,12 @@ int check_subopt(const char &c, const int &e)
 {
     return (c != '\0' && !e);
 }
-void check_suboptarg(const char *suboptarg, int &e, void (*callback)(const char *), const char *const &token)
+void check_suboptarg(const char *suboptarg, int &e, void (*callback)(const char *))
 {
     if (suboptarg == __null)
+    {
         e = 1;
-    callback(token);
+        if (callback != __null)
+            callback;
+    }
 }

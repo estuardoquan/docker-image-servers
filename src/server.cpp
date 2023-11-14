@@ -1,7 +1,5 @@
 #include <iostream>
-#include <string>
 #include <checkopt.h>
-
 #include "server.h"
 
 typedef enum
@@ -24,9 +22,13 @@ typedef enum
     SUBOPT_TYPE,
     SUBOPT_VAL,
 } SUBOPTS;
-
-int test(int argc, char *argv[])
+void test(int argc, char *argv[])
 {
+    std::cout << argc << std::endl;
+    for (size_t i = 0; i < argc; i++)
+    {
+        std::cout << argv[i] << std::endl;
+    }
 
     struct Server server = {
         port : "80",
@@ -50,9 +52,11 @@ int test(int argc, char *argv[])
         locations : {},
     };
 
+    int err = 0;
+    int l = 0;
+    int o = 0;
     while (1)
     {
-        int err = 0;
         const char *scope = "i:l::n:p:r:";
 
         static struct option options[] = {
@@ -145,9 +149,9 @@ int test(int argc, char *argv[])
             server.index = optarg;
             break;
         case 'l':
-            if (server.l < SIZE_ARR)
+            o = 0;
+            if (l < SIZE_ARR)
             {
-                static int o = 0;
                 if (CHECK_OPTARG)
                 {
                     subopt = optarg;
@@ -157,31 +161,31 @@ int test(int argc, char *argv[])
                         {
                         case SUBOPT_CONF:
                             CHECK_SUBOPTARG(SUBOPT_CONF);
-                            server.locations[server.l].conf = suboptarg;
+                            server.locations[l].conf = suboptarg;
                             break;
                         case SUBOPT_PATH:
                             CHECK_SUBOPTARG(SUBOPT_PATH);
-                            server.locations[server.l].path = suboptarg;
+                            server.locations[l].path = suboptarg;
                             break;
                         case SUBOPT_OTHER:
                             if (o < SIZE_ARR)
                             {
                                 CHECK_SUBOPTARG(SUBOPT_OTHER);
-                                server.locations[server.l].other[o++] = suboptarg;
+                                server.locations[l].other[o++] = suboptarg;
                             }
                             break;
                         case SUBOPT_TYPE:
                             CHECK_SUBOPTARG(SUBOPT_TYPE);
-                            server.locations[server.l].type = suboptarg;
+                            server.locations[l].type = suboptarg;
                             break;
                         case SUBOPT_VAL:
                             CHECK_SUBOPTARG(SUBOPT_VAL);
-                            server.locations[server.l].val = suboptarg;
+                            server.locations[l].val = suboptarg;
                             break;
                         }
                     }
                 }
-                server.locations[server.l++].active = true;
+                server.locations[l++].active = true;
             }
             break;
         case 'n':
@@ -199,9 +203,9 @@ int test(int argc, char *argv[])
         }
     }
     server.print();
-    exit(EXIT_SUCCESS);
 }
 
+// Declare usage functions
 void usage(const char *argv0)
 {
     std::cout << "Usage: "
@@ -216,92 +220,123 @@ void usage_subopt(const char *subopt)
 }
 
 // Declare Https methods
-std::string Https::get_conf()
+void Https::get_conf()
 {
-    return "include " + conf + "; ";
+    std::cout << "include " << conf << "; ";
 }
-std::string Https::get_crt()
+void Https::get_crt()
 {
-    return "ssl_certificate " + path + "/" + file_name + ".crt; ";
+    std::cout << "ssl_certificate " << path << "/" << file_name << ".crt; ";
 }
-std::string Https::get_key()
+void Https::get_key()
 {
-    return "ssl_certificate_key " + path + "/" + file_name + ".key; ";
+    std::cout << "ssl_certificate_key " << path << "/" << file_name << ".key; ";
 }
-std::string Https::get_ssl()
+
+void Https::get_block()
 {
-    return active ? " ssl; " : "; ";
-}
-std::string Https::get_block()
-{
-    return active ? "http2 on; " + get_crt() + get_key() + get_conf() : "";
+    if (active)
+    {
+        std::cout << "http2 on; ";
+        get_crt();
+        get_key();
+        get_conf();
+    }
 }
 
 // Declare Domain methods
-std::string Domain::get_san()
+void Domain::get_san()
 {
-    return !alternate.empty() ? " " + alternate + "; " : "; ";
+    if (*alternate != '\0')
+        std::cout << " " << alternate;
 }
-std::string Domain::get_line()
+void Domain::get_line()
 {
-    return "server_name " + subject + get_san();
-    ;
+    std::cout << "server_name " << subject;
+    get_san();
+    std::cout << "; ";
 }
 
 // Declare Location methods
-std::string Location::get_conf()
+void Location::get_conf()
 {
-    return !conf.empty() ? "include " + conf + "; " : "";
+    if (*conf != '\0')
+        std::cout << "include " << conf << "; ";
 }
-std::string Location::get_typeval()
+void Location::get_typeval()
 {
-    return !type.empty() ? type + " " + val + "; " : "";
+    if (*type != '\0')
+        std::cout << type << " " << val << "; ";
 }
-std::string Location::get_other()
+void Location::get_other()
 {
-    std::string str;
     for (auto &o : other)
     {
-        if (o.empty())
+        if (o == __null)
             break;
-        str += o + "; ";
+        std::cout << o << "; ";
     }
-    return str;
 }
-std::string Location::get_block()
+void Location::get_block()
 {
-    return "location " + path + " { " + get_typeval() + get_other() + get_conf() + "} ";
+    std::cout << "location " << path << " { ";
+    get_typeval();
+    get_other();
+    get_conf();
+    std::cout << "} ";
 }
 
 // Declare Log methods
-std::string Log::get_access()
+void Log::get_access()
 {
-    return "access_log " + path + "/" + *file_name + ".access.log; ";
+    std::cout << "access_log " << path << "/" << *file_name << ".access.log; ";
 }
-std::string Log::get_error()
+void Log::get_error()
 {
-    return "error_log " + path + "/" + *file_name + ".error.log; ";
+    std::cout << "error_log " << path << "/" << *file_name << ".error.log; ";
 }
-std::string Log::get_block()
+void Log::get_block()
 {
-    return active ? get_access() + get_error() : "";
+    if (active)
+    {
+        get_access();
+        get_error();
+    }
 }
 
 // Declare Server methods
+void Server::get_port_line()
+{
+    std::cout << "listen " << port;
+    if (https.active)
+        std::cout << " ssl";
+    std::cout << "; ";
+}
+void Server::get_root_line()
+{
+    if (*root != '\0')
+        std::cout << "root " << root << "; ";
+}
+void Server::get_index_line()
+{
+    if (*index != '\0')
+        std::cout << "index " << index << "; ";
+}
 void Server::print()
 {
-    std::cout << "server { "
-              << "listen " + port + https.get_ssl()
-              << https.get_block()
-              << domain.get_line()
-              << log.get_block()
-              << (!root.empty() ? "root " + root + "; " : "")
-              << (!index.empty() ? "index " + index + "; " : "");
+    std::cout << "server { ";
+    get_port_line();
+    domain.get_line();
+    https.get_block();
+    log.get_block();
+    get_root_line();
+    get_index_line();
     for (auto &location : locations)
     {
         if (location.active == 0)
             break;
-        std::cout << location.get_block();
+        location.get_block();
     }
-    std::cout << "}" << std::endl;
+    std::cout << "}";
+    std::cout << std::endl;
 }

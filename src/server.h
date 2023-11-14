@@ -1,61 +1,71 @@
 #pragma once
-
 #define SIZE_ARR 10
-#define SIZE_STR 10
 
 struct Https
 {
     bool active;
-    std::string conf;
-    std::string file_name;
-    std::string path;
-    std::string get_conf();
-    std::string get_crt();
-    std::string get_key();
-    std::string get_ssl();
-    std::string get_block();
+    const char *conf;
+    const char *file_name;
+    const char *path;
+
+    void get_conf();
+    void get_crt();
+    void get_key();
+    void get_ssl();
+    void get_block();
 };
+
 struct Domain
 {
-    std::string subject;
-    std::string alternate;
-    std::string get_san();
-    std::string get_line();
+    const char *subject;
+    const char *alternate;
+
+    void get_san();
+    void get_line();
 };
+
 struct Location
 {
     bool active = false;
-    std::string conf = "";
-    std::string path = "/";
-    std::string type = "try_files";
-    std::string val = "index.html";
-    std::string other[10];
-    std::string get_conf();
-    std::string get_typeval();
-    std::string get_other();
-    std::string get_block();
+    const char *conf = "";
+    const char *path = "/";
+    const char *type = "try_files";
+    const char *val = "index.html";
+    char *other[SIZE_ARR];
+
+    void get_conf();
+    void get_typeval();
+    void get_other();
+    void get_block();
 };
+
 struct Log
 {
     bool active = false;
-    const std::string *file_name;
-    std::string path = "/var/log/nginx";
-    std::string get_access();
-    std::string get_error();
-    std::string get_block();
+    const char **file_name;
+    const char *path = "/var/log/nginx";
+
+    void get_access();
+    void get_error();
+    void get_block();
 };
+
 struct Server
 {
-    int l = 0;
-    std::string port;
-    std::string index;
-    std::string root;
+    const char *port;
+    const char *index;
+    const char *root;
     struct Domain domain;
     struct Https https;
     struct Log log;
-    struct Location locations[10];
+    struct Location locations[SIZE_ARR];
+
     void print();
+    void get_port_line();
+    void get_root_line();
+    void get_index_line();
 };
-int test(int argc, char *argv[]);
+
+void test(int argc, char *argv[]);
 void usage(const char *argv0);
 void usage_subopt(const char *subopt);
