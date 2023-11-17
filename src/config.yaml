@@ -1,0 +1,21 @@
+server:
+    port: 9000
+    index:
+    root:
+    log: 'patt/to/log'
+    domain:
+        subject: localhost
+        alternate: '*.localhost'
+    https:
+        conf:
+        path: '/path/to/https'
+        filename:
+    locations:
+        location:
+            conf:
+            path:
+            type:
+            val:
+            other:
+                -
+                -

@@ -2,21 +2,28 @@ cmake_minimum_required(VERSION 3.27.7)
 
 project(main)
 
-add_subdirectory(./opts)
+add_subdirectory(./options)
+
+add_subdirectory(./yaml-cpp)
 
 add_executable(${PROJECT_NAME}
     main.cpp
-    server.cpp server.h
+    print_server.cpp print_server.h
 )
 
 target_include_directories(${PROJECT_NAME} 
-    PUBLIC ./opts
+    PRIVATE
+        ./options
+        ${YAML_CPP_INCLUDE_DIR}
 )
 
 target_link_directories(${PROJECT_NAME} 
-    PUBLIC ./opts
+    PRIVATE 
+        ./options
 )
 
 target_link_libraries(${PROJECT_NAME} 
-    checkopt
+    PRIVATE 
+        options
+        yaml-cpp::yaml-cpp
 )

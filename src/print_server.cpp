@@ -1,7 +1,8 @@
-#include <iostream>
-#include <checkopt.h>
-#include "server.h"
+#include <stdio.h>
+#include <stdlib.h>
 
+#include <options.h>
+#include "print_server.h"
 typedef enum
 {
     LONGOPT_INDEX = 0,
@@ -22,14 +23,8 @@ typedef enum
     SUBOPT_TYPE,
     SUBOPT_VAL,
 } SUBOPTS;
-void test(int argc, char *argv[])
+void print_server(int argc, char *argv[])
 {
-    std::cout << argc << std::endl;
-    for (size_t i = 0; i < argc; i++)
-    {
-        std::cout << argv[i] << std::endl;
-    }
-
     struct Server server = {
         port : "80",
         index : "",
@@ -41,12 +36,12 @@ void test(int argc, char *argv[])
         https : {
             active : false,
             conf : "/etc/nginx/extra/default.https.conf",
-            file_name : "site",
+            filename : "site",
             path : "/path/to/cert",
         },
         log : {
             active : false,
-            file_name : &server.domain.subject,
+            filename : &server.domain.subject,
             path : "/var/log/nginx",
         },
         locations : {},
@@ -116,7 +111,7 @@ void test(int argc, char *argv[])
                             break;
                         case SUBOPT_FILENAME:
                             CHECK_SUBOPTARG(SUBOPT_FILENAME);
-                            server.https.file_name = suboptarg;
+                            server.https.filename = suboptarg;
                             break;
                         }
                     }
@@ -204,139 +199,80 @@ void test(int argc, char *argv[])
     }
     server.print();
 }
-
-// Declare usage functions
-void usage(const char *argv0)
+char *charstr(const char **a, const char **b)
 {
-    std::cout << "Usage: "
-              << argv0
-              << std::endl;
+    char *c = (char *)calloc(0, sizeof(char));
+    int i, j, n;
+    i = j = n = 0;
+    while ((*a)[i] != '\0')
+    {
+        c = (char *)realloc(c, (i * sizeof(char)) + 1);
+        c[i] = (*a)[i];
+        i++;
+    }
+    if ((*b)[j] != '\0')
+        c[i++] = ' ';
+    while ((*b)[j] != '\0')
+    {
+        c = (char *)realloc(c, (j * sizeof(char)) + 2);
+        c[j + i] = (*b)[j];
+        j++;
+    }
+    return c;
+}
+
+void usage(const char *argv)
+{
+    printf("Usage : %s\n", argv);
     exit(EXIT_FAILURE);
 }
 void usage_subopt(const char *subopt)
 {
-    std::cout << "Usage: --option [" << subopt << "= ] " << std::endl;
+    printf("Usage: --option[ %s= ]\n", subopt);
     exit(EXIT_FAILURE);
 }
 
-// Declare Https methods
-void Https::get_conf()
-{
-    std::cout << "include " << conf << "; ";
-}
-void Https::get_crt()
-{
-    std::cout << "ssl_certificate " << path << "/" << file_name << ".crt; ";
-}
-void Https::get_key()
-{
-    std::cout << "ssl_certificate_key " << path << "/" << file_name << ".key; ";
-}
-
-void Https::get_block()
-{
-    if (active)
-    {
-        std::cout << "http2 on; ";
-        get_crt();
-        get_key();
-        get_conf();
-    }
-}
-
-// Declare Domain methods
-void Domain::get_san()
-{
-    if (*alternate != '\0')
-        std::cout << " " << alternate;
-}
-void Domain::get_line()
-{
-    std::cout << "server_name " << subject;
-    get_san();
-    std::cout << "; ";
-}
-
-// Declare Location methods
-void Location::get_conf()
-{
-    if (*conf != '\0')
-        std::cout << "include " << conf << "; ";
-}
-void Location::get_typeval()
-{
-    if (*type != '\0')
-        std::cout << type << " " << val << "; ";
-}
-void Location::get_other()
-{
-    for (auto &o : other)
-    {
-        if (o == __null)
-            break;
-        std::cout << o << "; ";
-    }
-}
-void Location::get_block()
-{
-    std::cout << "location " << path << " { ";
-    get_typeval();
-    get_other();
-    get_conf();
-    std::cout << "} ";
-}
-
-// Declare Log methods
-void Log::get_access()
-{
-    std::cout << "access_log " << path << "/" << *file_name << ".access.log; ";
-}
-void Log::get_error()
-{
-    std::cout << "error_log " << path << "/" << *file_name << ".error.log; ";
-}
-void Log::get_block()
-{
-    if (active)
-    {
-        get_access();
-        get_error();
-    }
-}
-
-// Declare Server methods
-void Server::get_port_line()
-{
-    std::cout << "listen " << port;
-    if (https.active)
-        std::cout << " ssl";
-    std::cout << "; ";
-}
-void Server::get_root_line()
-{
-    if (*root != '\0')
-        std::cout << "root " << root << "; ";
-}
-void Server::get_index_line()
-{
-    if (*index != '\0')
-        std::cout << "index " << index << "; ";
-}
 void Server::print()
 {
-    std::cout << "server { ";
-    get_port_line();
-    domain.get_line();
-    https.get_block();
-    log.get_block();
-    get_root_line();
-    get_index_line();
+    printf("server \n{\n");
+    printf("\tlisten %s%s;\n", port, https.active ? " ssl" : "");
+
+    name = domain.name();
+    printf("\tserver_name %s;\n\n", name);
+    free(name);
+
+    if (log.active)
+    {
+        printf("\taccess_log %s/%s.access.log;\n", log.path, *log.filename);
+        printf("\terror_log %s/%s.access.log;\n\n", log.path, *log.filename);
+    }
+
+    if (https.active)
+    {
+        printf("\tssl_certificate %s/%s.crt;\n", https.path, https.filename);
+        printf("\tssl_certificate_key %s/%s.key;\n", https.path, https.filename);
+        printf("\tinclude %s;\n\n", https.conf);
+    }
+    if (*root != '\0')
+        printf("\troot %s;\n\n", root);
+    if (*index != '\0')
+        printf("\tindex %s;\n\n", index);
     for (auto &location : locations)
     {
         if (location.active == 0)
             break;
-        location.get_block();
+        printf("\tlocation %s\n\t{\n", location.path);
+        if (*location.type != '\0')
+            printf("\t\t%s %s;\n", location.type, location.val);
+        for (auto &o : location.other)
+        {
+            if (o == __null)
+                break;
+            printf("\t\t%s;\n", o);
+        }
+        if (*location.conf != '\0')
+            printf("\t\tinclude %s;\n", location.conf);
+        printf("\t}\n\n");
     }
-    std::cout << "}";
-    std::cout << std::endl;
+    printf("}\n");
 }

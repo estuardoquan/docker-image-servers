@@ -11,7 +11,7 @@ crun:
 	$(CBUILD)$(CFILE) $(ARGS)
 
 cleanup:
-	rm -r $(CBUILD)
+	rm -rf $(CBUILD)
 
 dbuild: service-nginx
 
