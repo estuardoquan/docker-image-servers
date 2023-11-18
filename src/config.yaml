@@ -1,21 +1,21 @@
-server:
-    port: 9000
-    index:
-    root:
-    log: 'patt/to/log'
-    domain:
-        subject: localhost
-        alternate: '*.localhost'
-    https:
-        conf:
-        path: '/path/to/https'
-        filename:
-    locations:
-        location:
-            conf:
-            path:
-            type:
-            val:
-            other:
-                -
-                -
+# ./main -p 6000 --san "*.localhost" --https path=/var/local/step -r /var/www/html/public -i "index.html index.php"         \
+#    -l val="\$uri \$uri/ /index.php?\$query_string",other="gzip_static on"                                                 \
+#    -l path="~ \.php$",type="fastcgi_pass",val="php:9000",conf="/etc/nginx/extra/default.php_fastcgi.conf"                 \
+#    -l path="/favicon.ico",type=,other="access_log off",other="log_not_found off"                                          \
+#    -l path="/robots.txt",type=,other="access_log off",other="log_not_found off"                                           \
+#    -l path="~/\.ht",type=,other="deny all"                                                                                \
+- server:
+      port: 9000
+      index:
+      root:
+      log: /path/to/log
+      domain:
+          subject: localhost
+          alternate: '*.localhost'
+      https:
+          path: /var/local/step
+      locations:
+          - location:
+                other:
+                    - 10
+                    - lol

@@ -7,8 +7,9 @@ add_subdirectory(./options)
 add_subdirectory(./yaml-cpp)
 
 add_executable(${PROJECT_NAME}
+    print_server.h
+    print_server.cpp
     main.cpp
-    print_server.cpp print_server.h
 )
 
 target_include_directories(${PROJECT_NAME} 

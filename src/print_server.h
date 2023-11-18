@@ -1,6 +1,6 @@
 #pragma once
 
-#define SIZE_ARR 10
+#define MAXARR 10
 
 void print_server(int argc, char *argv[]);
 void usage(const char *argv0);
@@ -9,7 +9,6 @@ char *charstr(const char **a, const char **b);
 
 struct Domain
 {
-    int lol;
     const char *subject;
     const char *alternate;
     char *name()
@@ -41,7 +40,7 @@ struct Location
     const char *path = "/";
     const char *type = "try_files";
     const char *val = "index.html";
-    char *other[SIZE_ARR];
+    const char *other[MAXARR];
 };
 
 struct Server
@@ -53,6 +52,7 @@ struct Server
     struct Domain domain;
     struct Https https;
     struct Log log;
-    struct Location locations[SIZE_ARR];
+    struct Location locations[MAXARR];
+
     void print();
 };

@@ -1,19 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <options.h>
 #include "print_server.h"
+
 typedef enum
 {
     LONGOPT_INDEX = 0,
-    LONGOPT_LOCATION,
     LONGOPT_NAME,
     LONGOPT_PORT,
     LONGOPT_ROOT,
+    LONGOPT_LOCATION,
     LONGOPT_HTTPS,
     LONGOPT_LOG,
     LONGOPT_SAN,
 } OPTS;
+
 typedef enum
 {
     SUBOPT_CONF = 0,
@@ -23,6 +24,64 @@ typedef enum
     SUBOPT_TYPE,
     SUBOPT_VAL,
 } SUBOPTS;
+
+void usage(const char *argv)
+{
+    printf("Usage : %s\n", argv);
+    exit(EXIT_FAILURE);
+}
+
+void usage_subopt(const char *subopt)
+{
+    printf("Usage: --option[ %s= ]\n", subopt);
+    exit(EXIT_FAILURE);
+}
+
+void Server::print()
+{
+    printf("server \n{\n");
+    printf("\tlisten %s%s;\n", port, https.active ? " ssl" : "");
+
+    name = domain.name();
+    printf("\tserver_name %s;\n\n", name);
+    free(name);
+
+    if (log.active)
+    {
+        printf("\taccess_log %s/%s.access.log;\n", log.path, *log.filename);
+        printf("\terror_log %s/%s.access.log;\n\n", log.path, *log.filename);
+    }
+
+    if (https.active)
+    {
+        printf("\tssl_certificate %s/%s.crt;\n", https.path, https.filename);
+        printf("\tssl_certificate_key %s/%s.key;\n", https.path, https.filename);
+        printf("\tinclude %s;\n\n", https.conf);
+    }
+    if (*root != '\0')
+        printf("\troot %s;\n\n", root);
+    if (*index != '\0')
+        printf("\tindex %s;\n\n", index);
+    for (Location &location : locations)
+    {
+        if (location.active == 0)
+            break;
+        printf("\tlocation %s\n\t{\n", location.path);
+        if (*location.type != '\0')
+            printf("\t\t%s %s;\n", location.type, location.val);
+        if (*location.conf != '\0')
+            printf("\t\tinclude %s;\n", location.conf);
+        for (const char *(&o) : location.other)
+        {
+            if (o == __null)
+                break;
+            printf("\t\t%s;\n", o);
+        }
+        printf("\t}\n\n");
+    }
+    printf("}\n");
+}
+
 void print_server(int argc, char *argv[])
 {
     struct Server server = {
@@ -37,7 +96,7 @@ void print_server(int argc, char *argv[])
             active : false,
             conf : "/etc/nginx/extra/default.https.conf",
             filename : "site",
-            path : "/path/to/cert",
+            path : "/var/local/step",
         },
         log : {
             active : false,
@@ -56,10 +115,10 @@ void print_server(int argc, char *argv[])
 
         static struct option options[] = {
             {"index", 1, 0, 'i'},
-            {"location", 2, 0, 'l'},
             {"name", 1, 0, 'n'},
             {"port", 1, 0, 'p'},
             {"root", 1, 0, 'r'},
+            {"location", 2, 0, 'l'},
             {"https", 2, 0, 0},
             {"log", 2, 0, 0},
             {"san", 1, 0, 0},
@@ -145,7 +204,7 @@ void print_server(int argc, char *argv[])
             break;
         case 'l':
             o = 0;
-            if (l < SIZE_ARR)
+            if (l < MAXARR)
             {
                 if (CHECK_OPTARG)
                 {
@@ -163,7 +222,7 @@ void print_server(int argc, char *argv[])
                             server.locations[l].path = suboptarg;
                             break;
                         case SUBOPT_OTHER:
-                            if (o < SIZE_ARR)
+                            if (o < MAXARR)
                             {
                                 CHECK_SUBOPTARG(SUBOPT_OTHER);
                                 server.locations[l].other[o++] = suboptarg;
@@ -219,60 +278,4 @@ char *charstr(const char **a, const char **b)
         j++;
     }
     return c;
-}
-
-void usage(const char *argv)
-{
-    printf("Usage : %s\n", argv);
-    exit(EXIT_FAILURE);
-}
-void usage_subopt(const char *subopt)
-{
-    printf("Usage: --option[ %s= ]\n", subopt);
-    exit(EXIT_FAILURE);
-}
-
-void Server::print()
-{
-    printf("server \n{\n");
-    printf("\tlisten %s%s;\n", port, https.active ? " ssl" : "");
-
-    name = domain.name();
-    printf("\tserver_name %s;\n\n", name);
-    free(name);
-
-    if (log.active)
-    {
-        printf("\taccess_log %s/%s.access.log;\n", log.path, *log.filename);
-        printf("\terror_log %s/%s.access.log;\n\n", log.path, *log.filename);
-    }
-
-    if (https.active)
-    {
-        printf("\tssl_certificate %s/%s.crt;\n", https.path, https.filename);
-        printf("\tssl_certificate_key %s/%s.key;\n", https.path, https.filename);
-        printf("\tinclude %s;\n\n", https.conf);
-    }
-    if (*root != '\0')
-        printf("\troot %s;\n\n", root);
-    if (*index != '\0')
-        printf("\tindex %s;\n\n", index);
-    for (auto &location : locations)
-    {
-        if (location.active == 0)
-            break;
-        printf("\tlocation %s\n\t{\n", location.path);
-        if (*location.type != '\0')
-            printf("\t\t%s %s;\n", location.type, location.val);
-        for (auto &o : location.other)
-        {
-            if (o == __null)
-                break;
-            printf("\t\t%s;\n", o);
-        }
-        if (*location.conf != '\0')
-            printf("\t\tinclude %s;\n", location.conf);
-        printf("\t}\n\n");
-    }
-    printf("}\n");
 }
