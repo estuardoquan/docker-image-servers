@@ -58,7 +58,7 @@ void YMLServer::print()
     printf("server \n{\n");
     printf("\tlisten %s%s;\n", port.c_str(), https.active ? " ssl" : "");
 
-    printf("\tserver_name %s;\n\n", domain.subject.c_str(), domain.alternate.empty() ? "" : domain.alternate.c_str());
+    printf("\tserver_name %s%s;\n\n", domain.subject.c_str(), domain.alternate.empty() ? "" : (" " + domain.alternate).c_str());
 
     if (log.active)
     {
