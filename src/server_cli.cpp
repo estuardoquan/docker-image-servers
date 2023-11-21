@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <options.h>
-#include "print_server.h"
+
+#include "server.h"
+#include "server_cli.h"
 
 typedef enum
 {
@@ -28,82 +30,22 @@ typedef enum
 void usage(const char *argv)
 {
     printf("Usage : %s\n", argv);
-    exit(EXIT_FAILURE);
+    exit(1);
 }
 
 void usage_subopt(const char *subopt)
 {
     printf("Usage: --option[ %s= ]\n", subopt);
-    exit(EXIT_FAILURE);
+    exit(1);
 }
 
-void Server::print()
-{
-    printf("server \n{\n");
-    printf("\tlisten %s%s;\n", port, https.active ? " ssl" : "");
-
-    name = domain.name();
-    printf("\tserver_name %s;\n\n", name);
-    free(name);
-
-    if (log.active)
-    {
-        printf("\taccess_log %s/%s.access.log;\n", log.path, *log.filename);
-        printf("\terror_log %s/%s.access.log;\n\n", log.path, *log.filename);
-    }
-
-    if (https.active)
-    {
-        printf("\tssl_certificate %s/%s.crt;\n", https.path, https.filename);
-        printf("\tssl_certificate_key %s/%s.key;\n", https.path, https.filename);
-        printf("\tinclude %s;\n\n", https.conf);
-    }
-    if (*root != '\0')
-        printf("\troot %s;\n\n", root);
-    if (*index != '\0')
-        printf("\tindex %s;\n\n", index);
-    for (Location &location : locations)
-    {
-        if (location.active == 0)
-            break;
-        printf("\tlocation %s\n\t{\n", location.path);
-        if (*location.type != '\0')
-            printf("\t\t%s %s;\n", location.type, location.val);
-        if (*location.conf != '\0')
-            printf("\t\tinclude %s;\n", location.conf);
-        for (const char *(&o) : location.other)
-        {
-            if (o == __null)
-                break;
-            printf("\t\t%s;\n", o);
-        }
-        printf("\t}\n\n");
-    }
-    printf("}\n");
-}
-
-void print_server(int argc, char *argv[])
+void print_cli(int argc, char **(&argv))
 {
     struct Server server = {
         port : "80",
-        index : "",
-        root : "",
         domain : {
             subject : "localhost",
-            alternate : ""
         },
-        https : {
-            active : false,
-            conf : "/etc/nginx/extra/default.https.conf",
-            filename : "site",
-            path : "/var/local/step",
-        },
-        log : {
-            active : false,
-            filename : &server.domain.subject,
-            path : "/var/log/nginx",
-        },
-        locations : {},
     };
 
     int err = 0;
@@ -127,7 +69,7 @@ void print_server(int argc, char *argv[])
         static struct suboption suboptions[] = {
             {"conf"},
             {"file_name"},
-            {"other"},
+            // {"other"},
             {"path"},
             {"type"},
             {"val"},
@@ -135,7 +77,7 @@ void print_server(int argc, char *argv[])
         static char *const tokens[] = {
             suboptions[SUBOPT_CONF].name,
             suboptions[SUBOPT_FILENAME].name,
-            suboptions[SUBOPT_OTHER].name,
+            // suboptions[SUBOPT_OTHER].name,
             suboptions[SUBOPT_PATH].name,
             suboptions[SUBOPT_TYPE].name,
             suboptions[SUBOPT_VAL].name,
@@ -221,13 +163,13 @@ void print_server(int argc, char *argv[])
                             CHECK_SUBOPTARG(SUBOPT_PATH);
                             server.locations[l].path = suboptarg;
                             break;
-                        case SUBOPT_OTHER:
-                            if (o < MAXARR)
-                            {
-                                CHECK_SUBOPTARG(SUBOPT_OTHER);
-                                server.locations[l].other[o++] = suboptarg;
-                            }
-                            break;
+                        // case SUBOPT_OTHER:
+                        //     if (o < MAXARR)
+                        //     {
+                        //         CHECK_SUBOPTARG(SUBOPT_OTHER);
+                        //         server.locations[l].other[o++] = suboptarg;
+                        //     }
+                        //     break;
                         case SUBOPT_TYPE:
                             CHECK_SUBOPTARG(SUBOPT_TYPE);
                             server.locations[l].type = suboptarg;
@@ -257,25 +199,4 @@ void print_server(int argc, char *argv[])
         }
     }
     server.print();
-}
-char *charstr(const char **a, const char **b)
-{
-    char *c = (char *)calloc(0, sizeof(char));
-    int i, j, n;
-    i = j = n = 0;
-    while ((*a)[i] != '\0')
-    {
-        c = (char *)realloc(c, (i * sizeof(char)) + 1);
-        c[i] = (*a)[i];
-        i++;
-    }
-    if ((*b)[j] != '\0')
-        c[i++] = ' ';
-    while ((*b)[j] != '\0')
-    {
-        c = (char *)realloc(c, (j * sizeof(char)) + 2);
-        c[j + i] = (*b)[j];
-        j++;
-    }
-    return c;
 }

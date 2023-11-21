@@ -5,15 +5,11 @@
 #    -l path="/robots.txt",type=,other="access_log off",other="log_not_found off"                                           \
 #    -l path="~/\.ht",type=,other="deny all"                                                                                \
 - server:
-      port: 9000
-      index:
-      root:
-      log: /path/to/log
+      port: 80
       domain:
           subject: localhost
           alternate: '*.localhost'
-      https:
-          path: /var/local/step
+      log: 'lol'
       locations:
           - location:
                 other:
