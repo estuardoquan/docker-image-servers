@@ -5,13 +5,17 @@
 #    -l path="/robots.txt",type=,other="access_log off",other="log_not_found off"                                           \
 #    -l path="~/\.ht",type=,other="deny all"                                                                                \
 - server:
-      port: 80
+      port: 6000
+      index: index.html index.php
+      root: /var/www/html/public
       domain:
           subject: localhost
           alternate: '*.localhost'
-      log: 'lol'
+      log: /var/log/nginx
+      https:
       locations:
           - location:
+                path: ~ \.php
+                val: \$uri \$uri/ /index.php?\$query_string
                 other:
-                    - 10
-                    - lol
+                    - 'gzip_static on'

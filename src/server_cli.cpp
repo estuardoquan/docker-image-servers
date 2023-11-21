@@ -41,7 +41,7 @@ void usage_subopt(const char *subopt)
 
 void print_cli(int argc, char **(&argv))
 {
-    struct Server server = {
+    struct CLIServer server = {
         port : "80",
         domain : {
             subject : "localhost",
@@ -69,7 +69,7 @@ void print_cli(int argc, char **(&argv))
         static struct suboption suboptions[] = {
             {"conf"},
             {"file_name"},
-            // {"other"},
+            {"other"},
             {"path"},
             {"type"},
             {"val"},
@@ -77,7 +77,7 @@ void print_cli(int argc, char **(&argv))
         static char *const tokens[] = {
             suboptions[SUBOPT_CONF].name,
             suboptions[SUBOPT_FILENAME].name,
-            // suboptions[SUBOPT_OTHER].name,
+            suboptions[SUBOPT_OTHER].name,
             suboptions[SUBOPT_PATH].name,
             suboptions[SUBOPT_TYPE].name,
             suboptions[SUBOPT_VAL].name,
@@ -163,13 +163,13 @@ void print_cli(int argc, char **(&argv))
                             CHECK_SUBOPTARG(SUBOPT_PATH);
                             server.locations[l].path = suboptarg;
                             break;
-                        // case SUBOPT_OTHER:
-                        //     if (o < MAXARR)
-                        //     {
-                        //         CHECK_SUBOPTARG(SUBOPT_OTHER);
-                        //         server.locations[l].other[o++] = suboptarg;
-                        //     }
-                        //     break;
+                        case SUBOPT_OTHER:
+                            if (o < MAXARR)
+                            {
+                                CHECK_SUBOPTARG(SUBOPT_OTHER);
+                                server.locations[l].other[o++] = suboptarg;
+                            }
+                            break;
                         case SUBOPT_TYPE:
                             CHECK_SUBOPTARG(SUBOPT_TYPE);
                             server.locations[l].type = suboptarg;

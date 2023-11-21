@@ -3,7 +3,7 @@
 #include "server.h"
 #include "server_yml.h"
 
-#define AS_CSTR as<std::string>().data()
+#define AS_STR as<std::string>()
 
 void print_yml(char **file)
 {
@@ -11,7 +11,7 @@ void print_yml(char **file)
         exit(1);
     const YAML::Node &config = YAML::LoadFile(*file);
 
-    struct Server servers[MAXARR];
+    struct YMLServer servers[MAXARR];
 
     for (int n = 0; n < config.size(); n++)
     {
@@ -21,22 +21,22 @@ void print_yml(char **file)
             node["port"].IsNull() || node["domain"]["subject"].IsNull())
             exit(1);
         servers[n].active = true;
-        servers[n].port = node["port"].AS_CSTR;
-        servers[n].domain.subject = node["domain"]["subject"].AS_CSTR;
+        servers[n].port = node["port"].AS_STR;
+        servers[n].domain.subject = node["domain"]["subject"].AS_STR;
 
         if (node["index"] && !node["index"].IsNull())
-            servers[n].index = node["index"].AS_CSTR;
+            servers[n].index = node["index"].AS_STR;
 
         if (node["root"] && !node["root"].IsNull())
-            servers[n].root = node["root"].AS_CSTR;
+            servers[n].root = node["root"].AS_STR;
 
         if (node["domain"]["alternate"] && !node["domain"]["alternate"].IsNull())
-            servers[n].domain.alternate = node["domain"]["alternate"].AS_CSTR;
+            servers[n].domain.alternate = node["domain"]["alternate"].AS_STR;
 
         if (node["log"] && !node["log"].IsNull())
         {
             servers[n].log.active = true;
-            servers[n].log.path = node["log"].AS_CSTR;
+            servers[n].log.path = node["log"].AS_STR;
         }
 
         if (node["https"])
@@ -44,13 +44,13 @@ void print_yml(char **file)
             servers[n].https.active = true;
 
             if (node["https"]["path"] && !node["https"]["path"].IsNull())
-                servers[n].https.path = node["https"]["path"].AS_CSTR;
+                servers[n].https.path = node["https"]["path"].AS_STR;
 
             if (node["https"]["filename"] && !node["https"]["filename"].IsNull())
-                servers[n].https.filename = node["https"]["filename"].AS_CSTR;
+                servers[n].https.filename = node["https"]["filename"].AS_STR;
 
             if (node["https"]["conf"] && !node["https"]["conf"].IsNull())
-                servers[n].https.conf = node["https"]["conf"].AS_CSTR;
+                servers[n].https.conf = node["https"]["conf"].AS_STR;
         }
         if (node["locations"] && node["locations"].size())
         {
@@ -59,24 +59,24 @@ void print_yml(char **file)
                 const YAML::Node &location = node["locations"][l]["location"];
                 servers[n].locations[l].active = 1;
                 if (location["conf"] && !location["conf"].IsNull())
-                    servers[n].locations[l].conf = location["conf"].AS_CSTR;
+                    servers[n].locations[l].conf = location["conf"].AS_STR;
 
                 if (location["path"] && !location["path"].IsNull())
-                    servers[n].locations[l].path = location["path"].AS_CSTR;
+                    servers[n].locations[l].path = location["path"].AS_STR;
 
                 if (location["type"] && !location["type"].IsNull())
-                    servers[n].locations[l].type = location["type"].AS_CSTR;
+                    servers[n].locations[l].type = location["type"].AS_STR;
 
                 if (location["val"] && !location["val"].IsNull())
-                    servers[n].locations[l].val = location["val"].AS_CSTR;
+                    servers[n].locations[l].val = location["val"].AS_STR;
 
-                // if (location["other"] && location["other"].size())
-                // {
-                //     const YAML::Node &other = location["other"];
-                //     for (int i = 0; i < other.size(); i++)
-                //         if (!other[i].IsNull())
-                //             servers[n].locations[l].other[i] = other[i].AS_CSTR;
-                // }
+                if (location["other"] && location["other"].size())
+                {
+                    const YAML::Node &other = location["other"];
+                    for (int i = 0; i < other.size(); i++)
+                        if (!other[i].IsNull())
+                            servers[n].locations[l].other[i] = other[i].AS_STR;
+                }
             }
         }
     }
