@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.27.7)
 
-project(main)
+project(nserver)
 
 add_subdirectory(./options)
 

@@ -6,11 +6,11 @@ int check_optarg(const int argc, char **argv[], int *optind, char **optarg)
                ? (bool)(*optarg = (*argv)[(*optind)++])
                : (*optarg != __null);
 }
-int check_subopt(const char &c, const int e)
+int check_subopt(const char c, const int e)
 {
     return (c != '\0' && !e);
 }
-void check_suboptarg(char **suboptarg, int *e, void (*callback)(const char *))
+void check_suboptarg(char **suboptarg, int *e, suboption subopt, void (*callback)(const char *))
 {
     if (*suboptarg == __null)
     {

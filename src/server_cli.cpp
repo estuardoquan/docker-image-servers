@@ -2,47 +2,37 @@
 #include <stdlib.h>
 #include <options.h>
 
+#include <sstream>
 #include "server.h"
 #include "server_cli.h"
 
 typedef enum
 {
-    LONGOPT_INDEX = 0,
-    LONGOPT_NAME,
-    LONGOPT_PORT,
-    LONGOPT_ROOT,
-    LONGOPT_LOCATION,
-    LONGOPT_HTTPS,
-    LONGOPT_LOG,
-    LONGOPT_SAN,
+    OPT_NAME,
+    OPT_PORT,
+    OPT_LOCATION,
+    OPT_INDEX,
+    OPT_HTTPS,
+    OPT_LOG,
+    OPT_REDIRECT,
+    OPT_ROOT,
+    OPT_SAN,
 } OPTS;
 
 typedef enum
 {
-    SUBOPT_CONF = 0,
     SUBOPT_FILENAME,
+    SUBOPT_INCLUDE,
     SUBOPT_OTHER,
     SUBOPT_PATH,
     SUBOPT_TYPE,
-    SUBOPT_VAL,
+    SUBOPT_VALUE,
 } SUBOPTS;
-
-void usage(const char *argv)
-{
-    printf("Usage : %s\n", argv);
-    exit(1);
-}
-
-void usage_subopt(const char *subopt)
-{
-    printf("Usage: --option[ %s= ]\n", subopt);
-    exit(1);
-}
 
 void print_cli(int argc, char **(&argv))
 {
     struct Server server = {
-        port : "80",
+        port : 80,
         domain : {
             subject : "localhost",
         },
@@ -53,34 +43,35 @@ void print_cli(int argc, char **(&argv))
     int o = 0;
     while (1)
     {
-        const char *scope = "i:l::n:p:r:";
+        const char *scope = "n:p:l:";
 
         static struct option options[] = {
-            {"index", 1, 0, 'i'},
             {"name", 1, 0, 'n'},
             {"port", 1, 0, 'p'},
-            {"root", 1, 0, 'r'},
             {"location", 2, 0, 'l'},
+            {"index", 1, 0, 0},
             {"https", 2, 0, 0},
-            {"log", 2, 0, 0},
+            {"log", 1, 0, 0},
+            {"redirect", 2, 0, 0},
+            {"root", 1, 0, 0},
             {"san", 1, 0, 0},
             __null,
         };
         static struct suboption suboptions[] = {
-            {"conf"},
             {"filename"},
+            {"include"},
             {"other"},
             {"path"},
             {"type"},
-            {"val"},
+            {"value"},
         };
         static char *const tokens[] = {
-            suboptions[SUBOPT_CONF].name,
             suboptions[SUBOPT_FILENAME].name,
+            suboptions[SUBOPT_INCLUDE].name,
             suboptions[SUBOPT_OTHER].name,
             suboptions[SUBOPT_PATH].name,
             suboptions[SUBOPT_TYPE].name,
-            suboptions[SUBOPT_VAL].name,
+            suboptions[SUBOPT_VALUE].name,
             __null,
         };
 
@@ -98,7 +89,10 @@ void print_cli(int argc, char **(&argv))
         case 0:
             switch (longopt)
             {
-            case LONGOPT_HTTPS:
+            case OPT_INDEX:
+                server.index = optarg;
+                break;
+            case OPT_HTTPS:
                 if (CHECK_OPTARG)
                 {
                     subopt = optarg;
@@ -106,20 +100,28 @@ void print_cli(int argc, char **(&argv))
                     {
                         switch (GET_SUBOPT)
                         {
-                        case SUBOPT_PATH:
-                            CHECK_SUBOPTARG(SUBOPT_PATH);
-                            server.https.path = suboptarg;
-                            break;
                         case SUBOPT_FILENAME:
                             CHECK_SUBOPTARG(SUBOPT_FILENAME);
                             server.https.filename = suboptarg;
+                            break;
+                        case SUBOPT_INCLUDE:
+                            CHECK_SUBOPTARG(SUBOPT_PATH);
+                            server.https.include = suboptarg;
+                            break;
+                        case SUBOPT_PATH:
+                            CHECK_SUBOPTARG(SUBOPT_PATH);
+                            server.https.path = suboptarg;
                             break;
                         }
                     }
                 }
                 server.https.active = true;
                 break;
-            case LONGOPT_LOG:
+            case OPT_LOG:
+                server.log = optarg;
+                break;
+            case OPT_REDIRECT:
+            {
                 if (CHECK_OPTARG)
                 {
                     subopt = optarg;
@@ -127,22 +129,36 @@ void print_cli(int argc, char **(&argv))
                     {
                         switch (GET_SUBOPT)
                         {
-                        case SUBOPT_PATH:
-                            CHECK_SUBOPTARG(SUBOPT_PATH);
-                            server.log.path = suboptarg;
+                        case SUBOPT_OTHER:
+                            CHECK_SUBOPTARG(SUBOPT_OTHER);
+                            server.redirect.other = suboptarg;
                             break;
+                        case SUBOPT_VALUE:
+                        {
+                            CHECK_SUBOPTARG(SUBOPT_VALUE);
+                            std::istringstream iss(suboptarg);
+                            iss >> server.redirect.value;
+                        }
+                        break;
+                        default:
+                        {
+                            std::istringstream iss(subopt);
+                            iss >> server.redirect.value;
+                        }
+                        break;
                         }
                     }
                 }
-                server.log.active = true;
+                server.redirect.active = true;
+            }
+            break;
+            case OPT_ROOT:
+                server.root = optarg;
                 break;
-            case LONGOPT_SAN:
+            case OPT_SAN:
                 server.domain.alternate = optarg;
                 break;
             }
-            break;
-        case 'i':
-            server.index = optarg;
             break;
         case 'l':
             o = 0;
@@ -155,9 +171,9 @@ void print_cli(int argc, char **(&argv))
                     {
                         switch (GET_SUBOPT)
                         {
-                        case SUBOPT_CONF:
-                            CHECK_SUBOPTARG(SUBOPT_CONF);
-                            server.locations[l].conf = suboptarg;
+                        case SUBOPT_INCLUDE:
+                            CHECK_SUBOPTARG(SUBOPT_INCLUDE);
+                            server.locations[l].include = suboptarg;
                             break;
                         case SUBOPT_PATH:
                             CHECK_SUBOPTARG(SUBOPT_PATH);
@@ -174,9 +190,9 @@ void print_cli(int argc, char **(&argv))
                             CHECK_SUBOPTARG(SUBOPT_TYPE);
                             server.locations[l].type = suboptarg;
                             break;
-                        case SUBOPT_VAL:
-                            CHECK_SUBOPTARG(SUBOPT_VAL);
-                            server.locations[l].val = suboptarg;
+                        case SUBOPT_VALUE:
+                            CHECK_SUBOPTARG(SUBOPT_VALUE);
+                            server.locations[l].value = suboptarg;
                             break;
                         }
                     }
@@ -188,15 +204,27 @@ void print_cli(int argc, char **(&argv))
             server.domain.subject = optarg;
             break;
         case 'p':
-            server.port = optarg;
-            break;
-        case 'r':
-            server.root = optarg;
-            break;
+        {
+            std::istringstream iss(optarg);
+            iss >> server.port;
+        }
+        break;
         default:
             usage(argv[0]);
             break;
         }
     }
     server.print();
+}
+
+void usage(const char *argv)
+{
+    printf("Usage : %s\n", argv);
+    exit(1);
+}
+
+void usage_subopt(const char *subopt)
+{
+    printf("Usage: --option[ %s= ]\n", subopt);
+    exit(1);
 }

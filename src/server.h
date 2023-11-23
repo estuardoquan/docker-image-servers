@@ -14,35 +14,36 @@ struct Server
     struct Https
     {
         bool active = false;
-        std::string conf = "/etc/nginx/extra/default.https.conf";
+        std::string include = "/etc/nginx/extra/default.https.conf";
         std::string filename = "site";
         std::string path = "var/local/step";
-    };
-
-    struct Log
-    {
-        bool active = false;
-        std::string path = "/var/log/nginx";
     };
 
     struct Location
     {
 
         bool active = false;
-        std::string conf = "";
+        std::string include = "";
         std::string path = "/";
         std::string type = "try_files";
-        std::string val = "index.html";
+        std::string value = "index.html";
         std::string other[MAXARR] = {};
     };
 
-    bool active = false;
-    std::string port = "";
+    struct Redirect
+    {
+        bool active = false;
+        int value = 80;
+        std::string other = "https://$host$request_uri";
+    };
+
+    int port = 80;
     std::string index = "";
     std::string root = "";
+    std::string log = "";
     struct Domain domain;
     struct Https https;
-    struct Log log;
+    struct Redirect redirect;
     struct Location locations[MAXARR] = {};
 
     void print();

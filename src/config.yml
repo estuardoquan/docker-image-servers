@@ -17,9 +17,10 @@
       locations:
           - location:
                 path: ~ \.php
-                val: $uri $uri/ /index.php?$query_string
+                value: $uri $uri/ /index.php?$query_string
                 other:
                     - 'gzip_static on'
+      redirect: 90
 # - server:
 #       port: 6000
 #       index: index.html index.php

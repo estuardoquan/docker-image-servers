@@ -3,77 +3,27 @@
 #include <stdlib.h>
 #include "server.h"
 
-char *CLIServer::Domain::name()
+void Server::print()
 {
-    return charsum(&subject, &alternate);
-}
-
-void CLIServer::print()
-{
-    printf("server \n{\n");
-    printf("\tlisten %s%s;\n", port, https.active ? " ssl" : "");
-
-    name = domain.name();
-    printf("\tserver_name %s;\n\n", name);
-    free(name);
-
-    if (log.active)
-    {
-        printf("\taccess_log %s/%s.access.log;\n", log.path, domain.subject);
-        printf("\terror_log %s/%s.access.log;\n\n", log.path, domain.subject);
-    }
-
-    if (https.active)
-    {
-        printf("\tssl_certificate %s/%s.crt;\n", https.path, https.filename);
-        printf("\tssl_certificate_key %s/%s.key;\n", https.path, https.filename);
-        printf("\tinclude %s;\n\n", https.conf);
-    }
-    if (*root != '\0')
-        printf("\troot %s;\n\n", root);
-    if (*index != '\0')
-        printf("\tindex %s;\n\n", index);
-    for (auto &location : locations)
-    {
-        if (location.active == 0)
-            break;
-        printf("\tlocation %s\n\t{\n", location.path);
-        if (*location.type != '\0')
-            printf("\t\t%s %s;\n", location.type, location.val);
-        if (*location.conf != '\0')
-            printf("\t\tinclude %s;\n", location.conf);
-        for (auto &o : location.other)
-        {
-            if (o == __null)
-                break;
-            printf("\t\t%s;\n", o);
-        }
-        printf("\t}\n\n");
-    }
-    printf("}\n");
-}
-
-void YMLServer::print()
-{
-    printf("server \n{\n");
-    printf("\tlisten %s%s;\n", port.c_str(),
+    printf("server\n{\n");
+    printf("\tlisten %i%s;\n", port,
            https.active ? " ssl" : "");
 
     printf("\tserver_name %s%s;\n\n",
            domain.subject.c_str(),
            domain.alternate.empty() ? "" : (" " + domain.alternate).c_str());
 
-    if (log.active)
+    if (!log.empty())
     {
-        printf("\taccess_log %s/%s.access.log;\n", log.path.c_str(), domain.subject.c_str());
-        printf("\terror_log %s/%s.access.log;\n\n", log.path.c_str(), domain.subject.c_str());
+        printf("\taccess_log %s/%s.access.log;\n", log.c_str(), domain.subject.c_str());
+        printf("\terror_log %s/%s.access.log;\n\n", log.c_str(), domain.subject.c_str());
     }
 
     if (https.active)
     {
         printf("\tssl_certificate %s/%s.crt;\n", https.path.c_str(), https.filename.c_str());
         printf("\tssl_certificate_key %s/%s.key;\n", https.path.c_str(), https.filename.c_str());
-        printf("\tinclude %s;\n\n", https.conf.c_str());
+        printf("\tinclude %s;\n\n", https.include.c_str());
     }
     if (!root.empty())
         printf("\troot %s;\n\n", root.c_str());
@@ -85,9 +35,9 @@ void YMLServer::print()
             break;
         printf("\tlocation %s\n\t{\n", location.path.c_str());
         if (!location.type.empty())
-            printf("\t\t%s %s;\n", location.type.c_str(), location.val.c_str());
-        if (!location.conf.empty())
-            printf("\t\tinclude %s;\n", location.conf.c_str());
+            printf("\t\t%s %s;\n", location.type.c_str(), location.value.c_str());
+        if (!location.include.empty())
+            printf("\t\tinclude %s;\n", location.include.c_str());
         for (auto &o : location.other)
         {
             if (o.empty())
@@ -97,4 +47,14 @@ void YMLServer::print()
         printf("\t}\n\n");
     }
     printf("}\n");
+    if (redirect.active)
+    {
+        printf("server\n{\n");
+        printf("\tlisten %i;\n", redirect.value);
+        printf("\tserver_name %s%s;\n\n",
+               domain.subject.c_str(),
+               domain.alternate.empty() ? "" : (" " + domain.alternate).c_str());
+        printf("\treturn 301 %s;\n\n", redirect.other.c_str());
+        printf("}\n");
+    }
 }
