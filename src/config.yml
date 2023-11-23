@@ -1,4 +1,5 @@
-# ./main -p 6000 --san "*.localhost" --https path=/var/local/step -r /var/www/html/public -i "index.html index.php"         \
+# ./main --port 6000 --name localhost --san "*.localhost" --https path=/var/local/step                                      \
+#    --log --root /var/www/html/public --index "index.html index.php"                                                       \
 #    -l val="\$uri \$uri/ /index.php?\$query_string",other="gzip_static on"                                                 \
 #    -l path="~ \.php$",type="fastcgi_pass",val="php:9000",conf="/etc/nginx/extra/default.php_fastcgi.conf"                 \
 #    -l path="/favicon.ico",type=,other="access_log off",other="log_not_found off"                                          \
@@ -10,12 +11,27 @@
       root: /var/www/html/public
       domain:
           subject: localhost
-          alternate: '*.localhost'
-      log: /var/log/nginx
-      https:
+          alternate: '2ocalhost'
+      log: true
+      https: true
       locations:
           - location:
                 path: ~ \.php
-                val: \$uri \$uri/ /index.php?\$query_string
+                val: $uri $uri/ /index.php?$query_string
                 other:
                     - 'gzip_static on'
+# - server:
+#       port: 6000
+#       index: index.html index.php
+#       root: /var/www/html/public
+#       domain:
+#           subject: localhost
+#           alternate: '*.localhost'
+#       log: true
+#       https: true
+#       locations:
+#           - location:
+#                 path: ~ \.php
+#                 val: \$uri \$uri/ /index.php?\$query_string
+#                 other:
+#                     - 'gzip_static on'

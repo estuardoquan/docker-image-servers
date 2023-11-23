@@ -1,15 +1,18 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
 #include "server_cli.h"
 #include "server_yml.h"
 
-#define YMLCMP strcmp("yml", argv[1]) == 0 || strcmp("yaml", argv[1]) == 0
+#define YMLFLAGS                          \
+    strcmp("--conf", argv[1]) == 0 ||     \
+        strcmp("--yaml", argv[1]) == 0 || \
+        strcmp("--yml", argv[1]) == 0 ||  \
+        strcmp("-y", argv[1]) == 0 ||     \
+        strcmp("--file", argv[1]) == 0 || \
+        strcmp("-f", argv[1]) == 0
 
 int main(int argc, char *argv[])
 {
-    if (YMLCMP)
+    if (YMLFLAGS)
     {
         print_yml(&argv[2]);
     }

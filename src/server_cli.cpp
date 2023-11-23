@@ -41,7 +41,7 @@ void usage_subopt(const char *subopt)
 
 void print_cli(int argc, char **(&argv))
 {
-    struct CLIServer server = {
+    struct Server server = {
         port : "80",
         domain : {
             subject : "localhost",
@@ -68,7 +68,7 @@ void print_cli(int argc, char **(&argv))
         };
         static struct suboption suboptions[] = {
             {"conf"},
-            {"file_name"},
+            {"filename"},
             {"other"},
             {"path"},
             {"type"},

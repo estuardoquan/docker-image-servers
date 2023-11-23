@@ -39,16 +39,14 @@ char *mcharsum(const char **a, const char **b)
     while ((*a)[i] != '\0')
     {
         c = (char *)realloc(c, (i * sizeof(char)) + 1);
-        c[i] = (*a)[i];
-        i++;
+        c[i++] = (*a)[i];
     }
     if ((*b)[j] != '\0')
         c[i++] = ' ';
     while ((*b)[j] != '\0')
     {
         c = (char *)realloc(c, (j * sizeof(char)) + 2);
-        c[j + i] = (*b)[j];
-        j++;
+        c[j++ + i] = (*b)[j];
     }
     return c;
 }
