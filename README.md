@@ -15,6 +15,8 @@ clone https://github.com/proxymurder/clib.git
 
 ```
 
+./server
+
 ```
 make cleanup cbuild
 
@@ -22,6 +24,3 @@ make --directory src/build
 
 make crun ARGS="[<optional>]"
 ```
-
-Clone -
-Clone -
