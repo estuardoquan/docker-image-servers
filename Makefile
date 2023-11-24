@@ -18,4 +18,5 @@ docker: docker-server
 docker-server:
 	docker build -t proxymurder/server:latest  ./
 
-
+docker-nserver:
+	# docker build -t proxymurder/server:latest  ./
