@@ -55,27 +55,27 @@ void print_yml(char **file)
         {
             for (int l = 0; l < node["locations"].size(); l++)
             {
-                if (node["locations"][l]["location"]["include"] &&
-                    !node["locations"][l]["location"]["include"].IsNull())
-                    servers[n].locations[l].include = node["locations"][l]["location"]["include"].STR;
+                if (node["locations"][l]["include"] &&
+                    !node["locations"][l]["include"].IsNull())
+                    servers[n].locations[l].include = node["locations"][l]["include"].STR;
 
-                if (node["locations"][l]["location"]["path"] &&
-                    !node["locations"][l]["location"]["path"].IsNull())
-                    servers[n].locations[l].path = node["locations"][l]["location"]["path"].STR;
+                if (node["locations"][l]["path"] &&
+                    !node["locations"][l]["path"].IsNull())
+                    servers[n].locations[l].path = node["locations"][l]["path"].STR;
 
-                if (node["locations"][l]["location"]["type"] &&
-                    !node["locations"][l]["location"]["type"].IsNull())
-                    servers[n].locations[l].type = node["locations"][l]["location"]["type"].STR;
+                if (node["locations"][l]["type"] &&
+                    !node["locations"][l]["type"].IsNull())
+                    servers[n].locations[l].type = node["locations"][l]["type"].STR;
 
-                if (node["locations"][l]["location"]["value"] &&
-                    !node["locations"][l]["location"]["value"].IsNull())
-                    servers[n].locations[l].value = node["locations"][l]["location"]["value"].STR;
+                if (node["locations"][l]["value"] &&
+                    !node["locations"][l]["value"].IsNull())
+                    servers[n].locations[l].value = node["locations"][l]["value"].STR;
 
-                if (node["locations"][l]["location"]["other"] &&
-                    node["locations"][l]["location"]["other"].size())
-                    for (int i = 0; i < node["locations"][l]["location"]["other"].size(); i++)
-                        if (!node["locations"][l]["location"]["other"][i].IsNull())
-                            servers[n].locations[l].other[i] = node["locations"][l]["location"]["other"][i].STR;
+                if (node["locations"][l]["other"] &&
+                    node["locations"][l]["other"].size())
+                    for (int i = 0; i < node["locations"][l]["other"].size(); i++)
+                        if (!node["locations"][l]["other"][i].IsNull())
+                            servers[n].locations[l].other[i] = node["locations"][l]["other"][i].STR;
 
                 servers[n].locations[l].active = 1;
             }

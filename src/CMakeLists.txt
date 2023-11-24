@@ -2,11 +2,9 @@ cmake_minimum_required(VERSION 3.27.7)
 
 project(nserver)
 
-add_subdirectory(./options)
+add_subdirectory(./ext/clib/options)
 
-add_subdirectory(./charsum)
-
-add_subdirectory(./yaml-cpp)
+add_subdirectory(./ext/yaml-cpp)
 
 add_executable(${PROJECT_NAME}
     main.cpp
@@ -17,20 +15,19 @@ add_executable(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} 
     PRIVATE
-        ./options
-        ./charsum
+        ./ext/clib/options
+        ./ext/yaml-cpp
     # ${YAML_CPP_INCLUDE_DIR}
 )
 
 target_link_directories(${PROJECT_NAME} 
     PRIVATE 
-        ./options
-        ./charsum
+        ./ext/clib/options
+        ./ext/yaml-cpp
 )
 
 target_link_libraries(${PROJECT_NAME} 
     PRIVATE 
         options
-        charsum
         yaml-cpp::yaml-cpp
 )

@@ -7,19 +7,18 @@
 #    -l path="~/\.ht",type=,other="deny all"                                                                                \
 - server:
       port: 6000
-      index: index.html index.php
-      root: /var/www/html/public
       domain:
           subject: localhost
           alternate: '2ocalhost'
-      log: true
       https: true
+      log: true
+      root: /var/www/html/public
+      index: index.html index.php
       locations:
-          - location:
-                path: ~ \.php
-                value: $uri $uri/ /index.php?$query_string
-                other:
-                    - 'gzip_static on'
+          - path: ~ \.php
+            value: $uri $uri/ /index.php?$query_string
+            other:
+                - 'gzip_static on'
       redirect: 90
 # - server:
 #       port: 6000
