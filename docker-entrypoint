@@ -1,0 +1,112 @@
+#!/bin/sh
+
+SERVER_PORT=${SERVER_PORT:-1313}
+SERVER_NAME=${SERVER_NAME:-localhost}
+SERVER_SAN=${SERVER_SAN:-""}
+
+SERVER_HTTPS=${SERVER_HTTPS:-""}
+SERVER_HTTPS_INCLUDE=",include=${SERVER_HTTPS_INCLUDE:-,include=/etc/nginx/includes/default.https.conf}"
+SERVER_HTTPS_FNAME=",filename=${SERVER_HTTPS_FNAME:-,filename=site}"
+
+SERVER_LOG=${SERVER_LOG:-""}
+SERVER_ROOT=${SERVER_ROOT:-""}
+SERVER_INDEX=${SERVER_INDEX:-""}
+
+
+SERVER_LOCATION=${SERVER_LOCATION:-""}
+
+SERVER_PHP=${SERVER_PHP:-""}
+SERVER_PHP_INCLUDE=${SERVER_PHP_INCLUDE:-,include=/etc/nginx/includes/default.php_fastcgi.conf}
+
+SERVER_FAVICON=${SERVER_FAVICON:-0}
+SERVER_ROBOTS=${SERVER_ROBOTS:-0}
+SERVER_HT=${SERVER_HT:-0}
+
+SERVER_REDIRECT=${SERVER_REDIRECT:-""}
+
+SERVER_YAML=${SERVER_YAML:-""}
+
+
+function __init(){
+    local default=${1:?Error}
+    
+    if [[ -n "${SERVER_YAML}" ]]; then
+        nserver --yaml "${SERVER_YAML}" > ${default}
+    fi
+    
+    set -- \
+    -p "${SERVER_PORT}" \
+    -n "${SERVER_NAME}"
+    
+    
+    if [[ -n "${SERVER_SAN}" ]]; then
+        set -- "${@}"\
+        --san "${SERVER_SAN}"
+    fi
+    
+    if [[ -n "${SERVER_HTTPS}" ]]; then
+        set -- "${@}" \
+        --https path="${SERVER_HTTPS}${SERVER_HTTPS_INCLUDE}${SERVER_HTTPS_FNAME}"
+    fi
+    
+    if [[ -n "${SERVER_LOG}" ]]; then
+        set -- "${@}" \
+        --log "${SERVER_LOG}"
+    fi
+    
+    if [[ -n "${SERVER_ROOT}" ]]; then
+        set -- "${@}" \
+        --root "${SERVER_ROOT}"
+    fi
+    
+    if [[ -n "${SERVER_INDEX}" ]]; then
+        set -- "${@}" \
+        --index "${SERVER_INDEX}"
+    fi
+    
+    if [[ -n "${SERVER_LOCATION}" ]]; then
+        set -- "${@}" \
+        --location "${SERVER_LOCATION}"
+    fi
+    
+    if [[ -n "${SERVER_PHP}" ]]; then
+        SERVER_FAVICON=1
+        SERVER_ROBOTS=1
+        SERVER_HT=1
+        
+        set -- "${@}"\
+        --location path="~ \.php\$",type=fastcgi_pass,value="${SERVER_PHP}${SERVER_PHP_INCLUDE}"
+    fi
+    
+    if [[ $SERVER_FAVICON == 1 || $SERVER_FAVICON == true ]]; then
+        set -- "${@}" \
+        --location path=/favicon.ico,type=access_log,value=off,other="log_not_found off"
+    fi
+    
+    if [[ $SERVER_ROBOTS == 1 || $SERVER_ROBOTS == true ]]; then
+        set -- "${@}" \
+        --location path=/robots.txt,type=access_log,value=off,other="log_not_found off"
+        
+    fi
+    
+    if [[ $SERVER_HT == 1 || $SERVER_HT == true ]]; then
+        set -- "${@}" \
+        --location path="~ /\.ht",type=deny,value=all
+    fi
+    
+    if [[ -n "${SERVER_REDIRECT}" ]]; then
+        set -- "${@}" \
+        --redirect "value=${SERVER_REDIRECT}"
+    fi
+    nserver print "${@}"
+    nserver print "${@}" > ${default}
+    unset default
+}
+
+__init /etc/nginx/conf.d/default.conf
+
+if [[ -n "${SERVER_HTTPS}" ]]; then
+    sleep 10 && certwatch ${SERVER_HTTPS} &
+fi
+
+exec "${@}"

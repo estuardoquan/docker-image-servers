@@ -13,10 +13,9 @@ crun:
 cleanup:
 	rm -rf $(CBUILD)
 
-dbuild: service-nginx
+docker: docker-server
 
-service-nginx:
-	docker build -t proxymurder/nginx:latest -f Dockerfile ./
+docker-server:
+	docker build -t proxymurder/server:latest  ./
 
 
-	

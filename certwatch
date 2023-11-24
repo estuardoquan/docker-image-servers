@@ -1,0 +1,8 @@
+#!/bin/sh
+
+TARGET=${1:?Error}
+
+while true; do
+    inotifywait -e modify ${TARGET}/site.crt
+    nginx -s reload
+done

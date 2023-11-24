@@ -10,11 +10,11 @@ typedef enum
 {
     OPT_NAME,
     OPT_PORT,
-    OPT_LOCATION,
-    OPT_INDEX,
     OPT_HTTPS,
-    OPT_LOG,
+    OPT_LOCATION,
     OPT_REDIRECT,
+    OPT_INDEX,
+    OPT_LOG,
     OPT_ROOT,
     OPT_SAN,
 } OPTS;
@@ -43,16 +43,16 @@ void print_cli(int argc, char **(&argv))
     int o = 0;
     while (1)
     {
-        const char *scope = "n:p:l:";
+        const char *scope = "n:p:s:l:r:";
 
         static struct option options[] = {
             {"name", 1, 0, 'n'},
             {"port", 1, 0, 'p'},
-            {"location", 2, 0, 'l'},
+            {"https", 1, 0, 's'},
+            {"location", 1, 0, 'l'},
+            {"redirect", 1, 0, 'r'},
             {"index", 1, 0, 0},
-            {"https", 2, 0, 0},
             {"log", 1, 0, 0},
-            {"redirect", 2, 0, 0},
             {"root", 1, 0, 0},
             {"san", 1, 0, 0},
             __null,
@@ -92,66 +92,11 @@ void print_cli(int argc, char **(&argv))
             case OPT_INDEX:
                 server.index = optarg;
                 break;
-            case OPT_HTTPS:
-                if (CHECK_OPTARG)
-                {
-                    subopt = optarg;
-                    while (CHECK_SUBOPT)
-                    {
-                        switch (GET_SUBOPT)
-                        {
-                        case SUBOPT_FILENAME:
-                            CHECK_SUBOPTARG(SUBOPT_FILENAME);
-                            server.https.filename = suboptarg;
-                            break;
-                        case SUBOPT_INCLUDE:
-                            CHECK_SUBOPTARG(SUBOPT_PATH);
-                            server.https.include = suboptarg;
-                            break;
-                        case SUBOPT_PATH:
-                            CHECK_SUBOPTARG(SUBOPT_PATH);
-                            server.https.path = suboptarg;
-                            break;
-                        }
-                    }
-                }
-                server.https.active = true;
+
                 break;
             case OPT_LOG:
                 server.log = optarg;
                 break;
-            case OPT_REDIRECT:
-            {
-                if (CHECK_OPTARG)
-                {
-                    subopt = optarg;
-                    while (CHECK_SUBOPT)
-                    {
-                        switch (GET_SUBOPT)
-                        {
-                        case SUBOPT_OTHER:
-                            CHECK_SUBOPTARG(SUBOPT_OTHER);
-                            server.redirect.other = suboptarg;
-                            break;
-                        case SUBOPT_VALUE:
-                        {
-                            CHECK_SUBOPTARG(SUBOPT_VALUE);
-                            std::istringstream iss(suboptarg);
-                            iss >> server.redirect.value;
-                        }
-                        break;
-                        default:
-                        {
-                            std::istringstream iss(subopt);
-                            iss >> server.redirect.value;
-                        }
-                        break;
-                        }
-                    }
-                }
-                server.redirect.active = true;
-            }
-            break;
             case OPT_ROOT:
                 server.root = optarg;
                 break;
@@ -161,9 +106,9 @@ void print_cli(int argc, char **(&argv))
             }
             break;
         case 'l':
-            o = 0;
             if (l < MAXARR)
             {
+                o = 0;
                 if (CHECK_OPTARG)
                 {
                     subopt = optarg;
@@ -207,6 +152,68 @@ void print_cli(int argc, char **(&argv))
         {
             std::istringstream iss(optarg);
             iss >> server.port;
+        }
+        break;
+        case 'r':
+        {
+            if (CHECK_OPTARG)
+            {
+                subopt = optarg;
+                while (CHECK_SUBOPT)
+                {
+                    switch (GET_SUBOPT)
+                    {
+                    case SUBOPT_OTHER:
+                        CHECK_SUBOPTARG(SUBOPT_OTHER);
+                        server.redirect.other = suboptarg;
+                        break;
+                    case SUBOPT_VALUE:
+                    {
+                        CHECK_SUBOPTARG(SUBOPT_VALUE);
+                        std::istringstream iss(suboptarg);
+                        iss >> server.redirect.value;
+                    }
+                    break;
+                    default:
+                    {
+                        std::istringstream iss(subopt);
+                        iss >> server.redirect.value;
+                    }
+                    break;
+                    }
+                }
+            }
+            server.redirect.active = true;
+        }
+        break;
+        case 's':
+        {
+            if (CHECK_OPTARG)
+            {
+                subopt = optarg;
+                while (CHECK_SUBOPT)
+                {
+                    switch (GET_SUBOPT)
+                    {
+                    case SUBOPT_FILENAME:
+                        CHECK_SUBOPTARG(SUBOPT_FILENAME);
+                        server.https.filename = suboptarg;
+                        break;
+                    case SUBOPT_INCLUDE:
+                        CHECK_SUBOPTARG(SUBOPT_INCLUDE);
+                        server.https.include = suboptarg;
+                        break;
+                    case SUBOPT_PATH:
+                        CHECK_SUBOPTARG(SUBOPT_PATH);
+                        server.https.path = suboptarg;
+                        break;
+                    default:
+                        server.https.path = optarg;
+                        break;
+                    }
+                }
+            }
+            server.https.active = true;
         }
         break;
         default:

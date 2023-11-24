@@ -14,9 +14,9 @@ struct Server
     struct Https
     {
         bool active = false;
-        std::string include = "/etc/nginx/extra/default.https.conf";
+        std::string include = "/etc/nginx/includes/default.https.conf";
         std::string filename = "site";
-        std::string path = "var/local/step";
+        std::string path = "";
     };
 
     struct Location
