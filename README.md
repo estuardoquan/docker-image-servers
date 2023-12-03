@@ -56,7 +56,12 @@ CLI command
 ```
 
 Alt to the CLI command a yaml conf may also be used to create this same structure.
-Yaml has to be loaded through CLI nserver --yaml /path/to/conf.yaml (\*)
+
+Yaml has to be loaded through CLI
+
+```
+camarero --yaml /path/to/conf.yaml
+```
 
 ```
 # conf.yaml // configuration for php running on a docker container named php on port 9000
@@ -90,34 +95,23 @@ Yaml has to be loaded through CLI nserver --yaml /path/to/conf.yaml (\*)
              value: all
 ```
 
-##
+Finally, this is the SET of ENV variables for docker-compose.
 
-###
+```
+# docker-entrypoint CLI approach, can only make one server
+SERVER_PORT: 6000
+SERVER_NAME: localhost
+SERVER_SAN: "\*.localhost"
+SERVER_HTTPS: /var/local/step
+SERVER_LOG: /var/log/nginx
+SERVER_ROOT: /var/www/html/public
+SERVER_INDEX: index.html index.php
+SERVER_TRYFILES: $$uri $$uri/ /index.php?$$query_string
+SERVER_PHP: php:9000
 
-### Finally, this is the SET of ENV variables
-
-### Needed to recrate this structure
-
-### With docker-compose.
-
-### (\*) input yaml in docker with # SERVER_YAML
-
-### May continue to watch crt with # SERVER_WATCH_CRT
-
-# # SERVER_PORT: 6000
-
-# # SERVER_NAME: localhost
-
-# # SERVER_SAN: "\*.localhost"
-
-# # SERVER_HTTPS: /var/local/step
-
-# # SERVER_LOG: /var/log/nginx
-
-# # SERVER_ROOT: /var/www/html/public
-
-# # SERVER_INDEX: index.html index.php
-
-# # SERVER_TRYFILES: $$uri $$uri/ /index.php?$$query_string
-
-# # SERVER_PHP: php:9000
+# For YAML file you may declare de following variables to both,
+# load the conf.yaml file and keep watches alive.
+# loads multiple servers
+SERVER_YAML
+SERVER_WATCH_CRT
+```
