@@ -123,6 +123,8 @@ These can be found inide /etc/nginx/yaml directory.
 
 Finally this is the complete list of available variables and their initianized values:
 
+NOTICE /etc/nginx/includes contains predefined nginx includes .conf files
+
 ```
 # docker-entrypoint
 
