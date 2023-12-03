@@ -116,3 +116,41 @@ camarero --yaml /path/to/conf.yaml
              type: deny
              value: all
 ```
+
+Finally this is the complete list of available variables and their initianized values:
+
+```
+# docker-entrypoint
+
+SERVER_PORT=${SERVER_PORT:-5000}
+SERVER_NAME=${SERVER_NAME:-localhost}
+SERVER_SAN=${SERVER_SAN:-""}
+
+SERVER_HTTPS=${SERVER_HTTPS:-""}
+SERVER_HTTPS_INCLUDE=${SERVER_HTTPS_INCLUDE:-/etc/nginx/includes/default.https.conf}
+SERVER_HTTPS_FNAME=${SERVER_HTTPS_FNAME:-site}
+
+SERVER_WATCH_CRT=${SERVER_WATCH_CRT:-""}
+
+SERVER_LOG=${SERVER_LOG:-""}
+SERVER_ROOT=${SERVER_ROOT:-""}
+SERVER_INDEX=${SERVER_INDEX:-""}
+
+SERVER_LOCATION=${SERVER_LOCATION:-""}
+
+SERVER_TRYFILES=${SERVER_TRYFILES:-""}
+SERVER_TRYFILES_INCLUDE=${SERVER_TRYFILES_INCLUDE:-""}
+SERVER_TRYFILES_PATH=${SERVER_TRYFILES_PATH:-"/"}
+SERVER_TRYFILES_OTHER=${SERVER_TRYFILES_OTHER:-""}
+
+SERVER_PHP=${SERVER_PHP:-""}
+SERVER_PHP_INCLUDE=${SERVER_PHP_INCLUDE:-/etc/nginx/includes/default.php_fastcgi.conf}
+
+SERVER_FAVICON=${SERVER_FAVICON:-0}
+SERVER_ROBOTS=${SERVER_ROBOTS:-0}
+SERVER_HT=${SERVER_HT:-0}
+
+SERVER_REDIRECT=${SERVER_REDIRECT:-""}
+
+SERVER_YAML=${SERVER_YAML:-""}
+```
