@@ -15,7 +15,7 @@ struct Server
     {
         bool active = false;
         std::string include = "/etc/nginx/includes/default.https.conf";
-        std::string filename = "site";
+        std::string filename = "";
         std::string path = "";
     };
 
@@ -25,8 +25,8 @@ struct Server
         bool active = false;
         std::string include = "";
         std::string path = "/";
-        std::string type = "try_files";
-        std::string value = "index.html";
+        std::string type = "";
+        std::string value = "";
         std::string other[MAXARR] = {};
     };
 

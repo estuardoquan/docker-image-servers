@@ -1,0 +1,28 @@
+- server:
+      port: 6000
+      domain:
+          subject: localhost
+          alternate: '*.localhost'
+      https: /var/local/step
+      log: /var/log/nginx
+      root: /var/www/html/public
+      index: index.html index.php
+      locations:
+          - value: $uri $uri/ /index.php?$query_string
+            other:
+                - 'gzip_static on'
+          - path: ~ \.php
+            type: fastcgi_pass
+            value: php:9000
+            include: /etc/nginx/includes/default.php_fastcgi.conf
+          - path: /favicon.ico
+            other:
+                - 'access_log off'
+                - 'log_not_found off'
+          - path: /robots.txt
+            other:
+                - 'access_log off'
+                - 'log_not_found off'
+          - path: ~ /\.ht
+            type: deny
+            value: all

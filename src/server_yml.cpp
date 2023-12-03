@@ -39,6 +39,9 @@ void print_yml(char **file)
         if (node["https"] && !node["https"].IsNull())
         {
             servers[n].https.active = true;
+            if (node["https"].IsScalar())
+                servers[n].https.path = node["https"].STR;
+
             if (node["https"].IsMap())
             {
                 if (node["https"]["path"] && !node["https"]["path"].IsNull())

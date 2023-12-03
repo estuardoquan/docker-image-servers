@@ -1,0 +1,22 @@
+- server:
+      port: 3000
+      domain:
+          subject: localhost
+          alternate: '*.localhost'
+      log: /var/log/nginx
+      https: /var/local/step
+      root: /var/www/html/dist
+      index: index.html
+      locations:
+          - value: $uri $uri/ /index.html
+          - path: /favicon.ico
+            other:
+                - 'access_log off'
+                - 'log_not_found off'
+          - path: /robots.txt
+            other:
+                - 'access_log off'
+                - 'log_not_found off'
+          - path: ~ /\.ht
+            type: deny
+            value: all

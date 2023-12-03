@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26.5)
 
-project(nserver)
+project(camarero)
 
 add_subdirectory(./ext/clib/options)
 
@@ -17,7 +17,6 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         ./ext/clib/options
         ./ext/yaml-cpp
-    # ${YAML_CPP_INCLUDE_DIR}
 )
 
 target_link_directories(${PROJECT_NAME} 
