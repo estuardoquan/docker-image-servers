@@ -1,6 +1,28 @@
 ### The following backend configuration can be created through:
 
+This set of ENV variables in docker with proxymurder/camarero:latest
+
 ```
+SERVER_PORT: 6000
+SERVER_NAME: localhost
+SERVER_SAN: "\*.localhost"
+SERVER_HTTPS: /var/local/step
+SERVER_LOG: /var/log/nginx
+SERVER_ROOT: /var/www/html/public
+SERVER_INDEX: index.html index.php
+SERVER_TRYFILES: $$uri $$uri/ /index.php?$$query_string
+SERVER_PHP: php:9000
+
+# For YAML file you may declare de following variables;
+# to load the conf.yaml file and keep watches alive.
+SERVER_YAML
+SERVER_WATCH_CRT
+```
+
+```
+# /etc/nginx/conf.d/default.conf
+# .conf file for php running on a docker container on port 9000.
+
 server {
     listen 6000 ssl;
     server_name localhost *.localhost;
@@ -42,7 +64,7 @@ server {
 }
 ```
 
-CLI command
+Docker compose entrypoint generates the following, CLI command:
 
 ```
  camarero print --port 6000 --name localhost --san *.localhost                                                                             \
@@ -55,16 +77,16 @@ CLI command
            --location path="~ /\.ht",type="deny",value="all"                                                                               \
 ```
 
-Alt to the CLI command a yaml conf may also be used to create this same structure.
+Alternative to the CLI command a YAML conf may also be used to create this same structure.
 
-Yaml has to be loaded through CLI
+Passed through ENV variable, and loaded through:
 
 ```
 camarero --yaml /path/to/conf.yaml
 ```
 
 ```
-# conf.yaml // configuration for php running on a docker container named php on port 9000
+# conf.yaml
  - server:
        port: 6000
        domain:
@@ -93,25 +115,4 @@ camarero --yaml /path/to/conf.yaml
            - path: ~ /\.ht
              type: deny
              value: all
-```
-
-Finally, this is the SET of ENV variables for docker-compose.
-
-```
-# docker-entrypoint CLI approach, can only make one server
-SERVER_PORT: 6000
-SERVER_NAME: localhost
-SERVER_SAN: "\*.localhost"
-SERVER_HTTPS: /var/local/step
-SERVER_LOG: /var/log/nginx
-SERVER_ROOT: /var/www/html/public
-SERVER_INDEX: index.html index.php
-SERVER_TRYFILES: $$uri $$uri/ /index.php?$$query_string
-SERVER_PHP: php:9000
-
-# For YAML file you may declare de following variables to both,
-# load the conf.yaml file and keep watches alive.
-# loads multiple servers
-SERVER_YAML
-SERVER_WATCH_CRT
 ```
