@@ -10,7 +10,7 @@ SERVER_HTTPS: /var/local/step
 SERVER_LOG: /var/log/nginx
 SERVER_ROOT: /var/www/html/public
 SERVER_INDEX: index.html index.php
-SERVER_TRYFILES: $$uri $$uri/ /index.php?$$query_string
+SERVER_TRYFILES: $$uri $$uri/ /index.php?$$query_string     # $$ are necesary to print literal '$'
 SERVER_PHP: php:9000
 
 # For YAML file you may declare de following variables;
