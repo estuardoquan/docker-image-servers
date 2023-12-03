@@ -160,3 +160,15 @@ SERVER_REDIRECT=${SERVER_REDIRECT:-""}
 
 SERVER_YAML=${SERVER_YAML:-""}
 ```
+
+##TODO:
+
+Some vulnerabilities may be still present within the C++ code;
+
+This IS NOT intended for Production, but rather to give an idea of what the final configuration file should look like.
+
+There are plans for patching these vulnerabilities, and creating tests;
+
+As well as Integrating inotify-tools C++ lib into the script and watch both CRT and YAML through the app and perform actions based on events.
+
+Possible docker socket "unix:///var/run/docker.sock" integration for watching other proxymurder/camarero containers.
