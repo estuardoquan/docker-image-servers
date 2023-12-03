@@ -165,10 +165,11 @@ SERVER_YAML=${SERVER_YAML:-""}
 
 Some vulnerabilities may be still present within the C++ code;
 
-This IS NOT intended for Production, but rather to give an idea of what the final configuration file should look like.
+This IS NOT intended for Production, but rather to give an idea of what the final PRODUCTION READY configuration file should look like.
 
 There are plans for patching these vulnerabilities, and creating tests;
 
-As well as Integrating inotify-tools C++ lib into the script and watch both CRT and YAML through the app and perform actions based on events.
+As well as Integrating inotify-tools C++ lib into the script and watch both, but not limited to, ssl CRT and YAML through the app and perform actions based on events.
+(some sort of NGINX micro-managment)
 
 Possible docker socket "unix:///var/run/docker.sock" integration for watching other proxymurder/camarero containers.

@@ -13,10 +13,10 @@ crun:
 cleanup:
 	rm -rf $(CBUILD)
 
-docker: camarerc camarero
+docker: camarero-build camarero
 
-camarerc:
-	 docker build -t proxymurder/camarero:builder  --target builder ./
+camarero-build:
+	 docker build -t proxymurder/camarero:build  --target build ./
 
 camarero:
 	docker build -t proxymurder/camarero:latest  --target camarero ./

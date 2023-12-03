@@ -32,6 +32,8 @@ SERVER_REDIRECT=${SERVER_REDIRECT:-""}
 SERVER_YAML=${SERVER_YAML:-""}
 
 function __init(){
+    local out=${1:?Error}
+    
     if [[ -n "${SERVER_YAML}" ]]; then
         set -- \
         --yaml "${SERVER_YAML}"
@@ -109,8 +111,6 @@ function __init(){
             --redirect "value=${SERVER_REDIRECT}"
         fi
     fi
-    
-    local out=${1:?Error}
     
     camarero "${@}" > ${out}
     

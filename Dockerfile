@@ -1,4 +1,4 @@
-FROM alpine:latest AS builder
+FROM alpine:latest AS build
 
 USER root
 
@@ -16,13 +16,17 @@ COPY ./src /src
 RUN cmake -B /src/build -S /src
 RUN make --directory /src/build
 
-FROM nginx:alpine AS camarero
+FROM scratch AS camarero
+
+COPY --from=nginx:alpine / /
 
 RUN apk update
 RUN apk add --no-cache \
     libgcc \
     libstdc++ \  
     inotify-tools
+
+COPY --from=build /src/build/camarero /usr/local/bin/camarero
 
 ADD ./nginx/includes /etc/nginx/includes
 ADD ./nginx/yaml /etc/nginx/yaml
@@ -34,8 +38,6 @@ COPY ./certwatch /usr/local/bin/certwatch
 RUN chmod +x /docker-entrypoint 
 RUN chmod +x /usr/local/bin/certwatch
 
-COPY --from=builder /src/build/camarero /usr/local/bin/camarero
+ENTRYPOINT ["/docker-entrypoint"]
 
 CMD ["nginx", "-g", "daemon off;"]
-
-ENTRYPOINT ["/docker-entrypoint"]
