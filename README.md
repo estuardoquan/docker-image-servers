@@ -19,7 +19,7 @@ SERVER_YAML
 SERVER_WATCH_CRT
 ```
 
-Generated this .conf file for backend "php" service running on a docker container on port 9000.
+Generates this .conf file for backend "php" service running on a docker container on port 9000.
 
 ```
 # /etc/nginx/conf.d/default.conf
