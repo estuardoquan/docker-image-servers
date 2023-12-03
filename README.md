@@ -1,4 +1,4 @@
-### The following backend configuration can be created through:
+### The following NGINX configuration can be created through:
 
 This set of ENV variables in docker with proxymurder/camarero:latest
 
@@ -19,7 +19,7 @@ SERVER_YAML
 SERVER_WATCH_CRT
 ```
 
-Generated this .conf file for php running on a docker container on port 9000.
+Generated this .conf file for backend "php" service running on a docker container on port 9000.
 
 ```
 # /etc/nginx/conf.d/default.conf
