@@ -78,7 +78,7 @@ Docker compose entrypoint generates the following, CLI command:
            --location path="~ /\.ht",type="deny",value="all"                                                                               \
 ```
 
-Alternative to the CLI command a YAML conf may also be used to create this same structure.
+Alternative to the CLI options approach a YAML conf file may also be provided to create the same nginx server structure.
 
 Passed through ENV variable, and loaded through:
 
@@ -86,8 +86,11 @@ Passed through ENV variable, and loaded through:
 camarero --yaml /path/to/conf.yaml
 ```
 
+proxymurder/camarero:latest comes preloaded with default php backend and js frontend YAML files.
+These can be found inide /etc/nginx/yaml directory.
+
 ```
-# conf.yaml
+# /etc/nginx/yaml/default.php.yaml
  - server:
        port: 6000
        domain:
