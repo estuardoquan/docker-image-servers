@@ -1,14 +1,11 @@
-CDIR=./src
-CBUILD=${CDIR}/build
-CFILE=/main
+CDIR=./
+CBUILD=./build
+CFILE=camarero
 
 all:
 
 cbuild:
 	cmake -B $(CBUILD) -S $(CDIR)
-
-crun: 
-	$(CBUILD)$(CFILE) $(ARGS)
 
 cleanup:
 	rm -rf $(CBUILD)

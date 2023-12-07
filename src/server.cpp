@@ -54,6 +54,6 @@ void Server::print()
                domain.subject.c_str(),
                domain.alternate.empty() ? "" : (" " + domain.alternate).c_str());
         printf("\treturn 301 %s;\n\n", redirect.other.c_str());
-        printf("}\n");
+        printf("}\n\n");
     }
 }

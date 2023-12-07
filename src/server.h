@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 
 #define MAXARR 10
@@ -15,7 +16,7 @@ struct Server
     {
         bool active = false;
         std::string include = "/etc/nginx/includes/default.https.conf";
-        std::string filename = "";
+        std::string filename = "site";
         std::string path = "";
     };
 

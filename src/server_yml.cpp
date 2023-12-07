@@ -96,7 +96,7 @@ void print_yml(char **file)
                 if (node["redirect"]["other"] && !node["redirect"]["other"].IsNull())
                     servers[n].redirect.other = node["redirect"]["other"].STR;
             }
-            servers->redirect.active = true;
+            servers[n].redirect.active = true;
         }
 
         servers[n].print();

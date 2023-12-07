@@ -7,10 +7,10 @@ add_subdirectory(./ext/clib/options)
 add_subdirectory(./ext/yaml-cpp)
 
 add_executable(${PROJECT_NAME}
-    main.cpp
-    server_cli.cpp server_cli.cpp
-    server_yml.cpp server_yml.h
-    server.cpp server.h
+    ./src/main.cpp
+    ./src/server_cli.cpp ./src/server_cli.cpp
+    ./src/server_yml.cpp ./src/server_yml.h
+    ./src/server.cpp ./src/server.h
 )
 
 target_include_directories(${PROJECT_NAME} 

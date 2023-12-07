@@ -11,10 +11,15 @@ RUN apk add --no-cache --virtual build-deps\
     git \
     wget 
 
-COPY ./src /src
+RUN mkdir -p /cpp
 
-RUN cmake -B /src/build -S /src
-RUN make --directory /src/build
+COPY ./src /cpp/src
+COPY ./ext /cpp/ext
+COPY ./CMakeLists.txt /cpp/CMakeLists.txt
+
+RUN cmake -B /cpp/build -S /cpp
+
+RUN make --directory /cpp/build
 
 FROM scratch AS camarero
 
@@ -26,17 +31,17 @@ RUN apk add --no-cache \
     libstdc++ \  
     inotify-tools
 
-COPY --from=build /src/build/camarero /usr/local/bin/camarero
-
-ADD ./nginx/includes /etc/nginx/includes
-ADD ./nginx/yaml /etc/nginx/yaml
-ADD ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /cpp/build/camarero /usr/local/bin/camarero
 
 COPY ./docker-entrypoint /docker-entrypoint
 COPY ./certwatch /usr/local/bin/certwatch
 
 RUN chmod +x /docker-entrypoint 
 RUN chmod +x /usr/local/bin/certwatch
+
+ADD ./etc/nginx/includes /etc/nginx/includes
+ADD ./etc/nginx/yaml /etc/nginx/yaml
+ADD ./etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
 ENTRYPOINT ["/docker-entrypoint"]
 
