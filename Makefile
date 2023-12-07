@@ -1,19 +1,17 @@
-CDIR=./
-CBUILD=./build
-CFILE=camarero
-
-all:
-
-cbuild:
-	cmake -B $(CBUILD) -S $(CDIR)
+all: cleanup cbuild docker-all
 
 cleanup:
-	rm -rf $(CBUILD)
+	rm -rf ./camarero/build
 
-docker: camarero-build camarero
+cbuild:
+	cmake -B ./camarero/build -S ./camarero
 
-camarero-build:
-	 docker build -t proxymurder/camarero:build  --target build ./
+docker: docker-server-service
 
-camarero:
-	docker build -t proxymurder/camarero:latest  --target camarero ./
+docker-all: docker-servers-build docker-servers-service
+
+docker-servers-camarero:
+	 docker build -t proxymurder/servers:build  --target build ./
+
+docker-servers-service:
+	docker build -t proxymurder/servers:latest  --target servers ./

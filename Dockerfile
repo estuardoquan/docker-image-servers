@@ -21,7 +21,7 @@ RUN cmake -B /cpp/build -S /cpp
 
 RUN make --directory /cpp/build
 
-FROM scratch AS camarero
+FROM scratch AS servers
 
 COPY --from=nginx:alpine / /
 
