@@ -11,11 +11,8 @@ RUN apk add --no-cache --virtual build-deps\
     git \
     wget 
 
-RUN mkdir -p /cpp
-
-COPY ./src /cpp/src
-COPY ./ext /cpp/ext
-COPY ./CMakeLists.txt /cpp/CMakeLists.txt
+COPY ./camarero /cpp
+RUN chmod +x /cpp/certwatch
 
 RUN cmake -B /cpp/build -S /cpp
 
@@ -32,12 +29,11 @@ RUN apk add --no-cache \
     inotify-tools
 
 COPY --from=build /cpp/build/camarero /usr/local/bin/camarero
+COPY --from=build /cpp/certwatch /usr/local/bin/certwatch
 
 COPY ./docker-entrypoint /docker-entrypoint
-COPY ./certwatch /usr/local/bin/certwatch
 
 RUN chmod +x /docker-entrypoint 
-RUN chmod +x /usr/local/bin/certwatch
 
 ADD ./etc/nginx/includes /etc/nginx/includes
 ADD ./etc/nginx/yaml /etc/nginx/yaml

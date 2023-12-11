@@ -6,7 +6,7 @@ cleanup:
 cbuild:
 	cmake -B ./camarero/build -S ./camarero
 
-docker: docker-server-service
+docker: docker-servers-service
 
 docker-all: docker-servers-build docker-servers-service
 
