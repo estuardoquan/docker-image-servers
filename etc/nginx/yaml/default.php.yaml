@@ -8,7 +8,9 @@
       root: /var/www/html/public
       index: index.html index.php
       locations:
-          - value: $uri $uri/ /index.php?$query_string
+          - path: /
+            type: try_files
+            value: $uri $uri/ /index.php?$query_string
             other:
                 - 'gzip_static on'
           - path: ~ \.php
