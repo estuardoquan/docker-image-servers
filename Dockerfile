@@ -42,3 +42,4 @@ ADD ./etc/nginx/nginx.conf /etc/nginx/nginx.conf
 ENTRYPOINT ["/docker-entrypoint"]
 
 CMD ["nginx", "-g", "daemon off;"]
+
