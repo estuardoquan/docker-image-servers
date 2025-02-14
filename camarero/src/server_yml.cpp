@@ -54,6 +54,12 @@ void print_yml(char **file)
                     servers[n].https.include = node["https"]["include"].STR;
             }
         }
+
+        if (node["other"] && node["other"].size())
+            for (int i = 0; i < node["other"].size(); i++)
+                    if (!node["other"][i].IsNull())
+                            servers[n].other[i] = node["other"][i].STR;
+
         if (node["locations"] && node["locations"].size())
         {
             for (int l = 0; l < node["locations"].size(); l++)

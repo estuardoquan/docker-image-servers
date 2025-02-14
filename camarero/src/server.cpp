@@ -15,7 +15,7 @@ void Server::print()
     if (!log.empty())
     {
         printf("\taccess_log %s/%s.access.log;\n", log.c_str(), domain.subject.c_str());
-        printf("\terror_log %s/%s.access.log;\n\n", log.c_str(), domain.subject.c_str());
+        printf("\terror_log %s/%s.error.log;\n\n", log.c_str(), domain.subject.c_str());
     }
 
     if (https.active)
@@ -28,6 +28,16 @@ void Server::print()
         printf("\troot %s;\n\n", root.c_str());
     if (!index.empty())
         printf("\tindex %s;\n\n", index.c_str());
+
+    for (auto &o : other)
+    {
+        if (o.empty())
+            break;
+        printf("\t%s;\n", o.c_str());
+    }
+    
+    printf("\n");
+
     for (auto &location : locations)
     {
         if (location.active == 0)

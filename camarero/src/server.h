@@ -39,9 +39,12 @@ struct Server
     };
 
     int port = 80;
+    
     std::string index = "";
     std::string root = "";
     std::string log = "";
+    std::string other[MAXARR] = {};
+
     struct Domain domain;
     struct Https https;
     struct Redirect redirect;

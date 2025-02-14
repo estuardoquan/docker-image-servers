@@ -1,45 +1,40 @@
-FROM alpine:latest AS build
+FROM alpine:latest AS camarero
 
 USER root
 
-RUN apk update
-RUN apk add --no-cache --virtual build-deps\
+COPY ./camarero /cpp
+
+RUN apk update && \
+    apk add --no-cache --virtual build-deps \
     build-base \
     abuild \
     cmake \ 
     extra-cmake-modules \
     git \
-    wget 
+    wget && \
+    cmake -B /cpp/build -S /cpp && \
+    make --directory /cpp/build
 
-COPY ./camarero /cpp
-RUN chmod +x /cpp/certwatch
-
-RUN cmake -B /cpp/build -S /cpp
-
-RUN make --directory /cpp/build
-
-FROM scratch AS servers
+FROM scratch AS server
 
 COPY --from=nginx:alpine / /
+COPY --from=camarero /cpp/build/camarero /usr/local/bin/camarero
 
-RUN apk update
-RUN apk add --no-cache \
-    libgcc \
-    libstdc++ \  
-    inotify-tools
-
-COPY --from=build /cpp/build/camarero /usr/local/bin/camarero
-COPY --from=build /cpp/certwatch /usr/local/bin/certwatch
-
-COPY ./docker-entrypoint /docker-entrypoint
-
-RUN chmod +x /docker-entrypoint 
+COPY ./certwatch.sh /usr/local/bin/certwatch.sh
+COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
 ADD ./etc/nginx/includes /etc/nginx/includes
 ADD ./etc/nginx/yaml /etc/nginx/yaml
 ADD ./etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
-ENTRYPOINT ["/docker-entrypoint"]
+RUN apk update && \
+    apk add --no-cache \
+    libgcc \
+    libstdc++ \  
+    inotify-tools && \
+    chmod +x /docker-entrypoint.sh 
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 CMD ["nginx", "-g", "daemon off;"]
 

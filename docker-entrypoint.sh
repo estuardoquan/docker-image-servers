@@ -31,7 +31,7 @@ SERVER_REDIRECT=${SERVER_REDIRECT:-""}
 
 SERVER_YAML=${SERVER_YAML:-""}
 
-function __init(){
+function init(){
     local out=${1:?Error}
     
     if [[ -n "${SERVER_YAML}" ]]; then
@@ -114,15 +114,17 @@ function __init(){
     
     camarero "${@}" > ${out}
     
-    unset out
-    
     return 0
 }
 
-__init /etc/nginx/conf.d/default.conf
-
 if [[ -n "${SERVER_WATCH_CRT}" ]]; then
-    sleep 10 && certwatch ${SERVER_WATCH_CRT} &
+    if [[ ! -f "${SERVER_WATCH_CRT}" ]]; then
+        sleep 10 
+    fi
+    
+    certwatch.sh ${SERVER_WATCH_CRT} &
 fi
+
+init /etc/nginx/conf.d/default.conf
 
 exec "${@}"
