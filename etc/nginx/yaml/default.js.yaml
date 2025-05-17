@@ -5,7 +5,7 @@
           alternate: '*.localhost'
       log: /var/log/nginx
       https: /var/local/step
-      root: /var/www/html/dist
+      root: /home/node/app/dist
       index: index.html
       locations:
           - path: /

@@ -7,6 +7,8 @@
       log: /var/log/nginx
       root: /var/www/html/public
       index: index.html index.php
+      other:
+          - 'client_max_body_size 0'
       locations:
           - path: /
             type: try_files
