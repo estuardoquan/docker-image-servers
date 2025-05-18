@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.26.5)
 
 project(camarero)
 
-add_subdirectory(./ext/clib/options)
+add_subdirectory(./ext/libc/options)
 
 add_subdirectory(./ext/yaml-cpp)
 
@@ -15,13 +15,13 @@ add_executable(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} 
     PRIVATE
-        ./ext/clib/options
+        ./ext/libc/options
         ./ext/yaml-cpp
 )
 
 target_link_directories(${PROJECT_NAME} 
     PRIVATE 
-        ./ext/clib/options
+        ./ext/libc/options
         ./ext/yaml-cpp
 )
 

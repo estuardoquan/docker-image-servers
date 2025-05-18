@@ -20,7 +20,7 @@ FROM scratch AS server
 COPY --from=nginx:alpine / /
 COPY --from=camarero /cpp/build/camarero /usr/local/bin/camarero
 
-COPY ./tmp/root_ca.crt /usr/local/share/ca-certificates/root_ca.crt
+# COPY ./tmp/root_ca.crt /usr/local/share/ca-certificates/root_ca.crt
 COPY ./certwatch.sh /usr/local/bin/certwatch.sh
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
@@ -33,8 +33,8 @@ RUN apk update && \
     libgcc \
     libstdc++ \  
     inotify-tools && \
-    chmod +x /docker-entrypoint.sh && \ 
-    update-ca-certificates
+    chmod +x /docker-entrypoint.sh 
+    # update-ca-certificates
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
