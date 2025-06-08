@@ -43,8 +43,7 @@ void Server::print()
         if (location.active == 0)
             break;
         printf("\tlocation %s\n\t{\n", location.path.c_str());
-        if (!location.type.empty())
-            printf("\t\t%s %s;\n", location.type.c_str(), location.value.c_str());
+
         if (!location.include.empty())
             printf("\t\tinclude %s;\n", location.include.c_str());
         for (auto &o : location.other)
@@ -53,6 +52,8 @@ void Server::print()
                 break;
             printf("\t\t%s;\n", o.c_str());
         }
+        if (!location.type.empty())
+            printf("\t\t%s %s;\n", location.type.c_str(), location.value.c_str());
         printf("\t}\n\n");
     }
     printf("}\n");
