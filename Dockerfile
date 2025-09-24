@@ -2,7 +2,7 @@ FROM alpine:latest AS camarero
 
 USER root
 
-COPY ./camarero /cpp
+COPY ./camarero_v2 /cpp
 
 RUN apk update && \
     apk add --no-cache --virtual build-deps \
