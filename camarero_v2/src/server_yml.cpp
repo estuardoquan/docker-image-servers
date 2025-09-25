@@ -47,9 +47,6 @@ void print_yml(char **file)
                 if (node["https"]["path"] && !node["https"]["path"].IsNull())
                     servers[n].https.path = node["https"]["path"].STR;
 
-                // if (node["https"]["filename"] && !node["https"]["filename"].IsNull())
-                //     servers[n].https.filename = node["https"]["filename"].STR;
-
                 if (node["https"]["crt"] && !node["https"]["crt"].IsNull())
                     servers[n].https.crt = node["https"]["crt"].STR;
 

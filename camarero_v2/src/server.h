@@ -16,7 +16,6 @@ struct Server
     {
         bool active = false;
         std::string include = "/etc/nginx/includes/default.https.conf";
-        // std::string filename = "site";
         std::string crt = "site.crt";
         std::string key = "site.key";
         std::string path = "";
