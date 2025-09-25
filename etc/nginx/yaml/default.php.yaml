@@ -3,7 +3,6 @@
       domain:
           subject: localhost
           alternate: '*.localhost'
-      https: /var/local/step
       log: /var/log/nginx
       root: /var/www/html/public
       index: index.html index.php
