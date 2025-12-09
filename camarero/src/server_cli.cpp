@@ -21,7 +21,8 @@ typedef enum
 
 typedef enum
 {
-    SUBOPT_FILENAME,
+    SUBOPT_CRT,
+    SUBOPT_KEY,
     SUBOPT_INCLUDE,
     SUBOPT_OTHER,
     SUBOPT_PATH,
@@ -58,7 +59,8 @@ void print_cli(int argc, char **(&argv))
             NULL,
         };
         static struct suboption suboptions[] = {
-            {"filename"},
+            {"crt"},
+            {"key"},
             {"include"},
             {"other"},
             {"path"},
@@ -66,7 +68,8 @@ void print_cli(int argc, char **(&argv))
             {"value"},
         };
         static char *const tokens[] = {
-            suboptions[SUBOPT_FILENAME].name,
+            suboptions[SUBOPT_CRT].name,
+            suboptions[SUBOPT_KEY].name,
             suboptions[SUBOPT_INCLUDE].name,
             suboptions[SUBOPT_OTHER].name,
             suboptions[SUBOPT_PATH].name,
@@ -195,10 +198,14 @@ void print_cli(int argc, char **(&argv))
                 {
                     switch (GET_SUBOPT)
                     {
-                    case SUBOPT_FILENAME:
-                        CHECK_SUBOPTARG(SUBOPT_FILENAME);
-                        server.https.filename = suboptarg;
+                    case SUBOPT_CRT:
+                        CHECK_SUBOPTARG(SUBOPT_CRT);
+                        server.https.crt = suboptarg;
                         break;
+                    case SUBOPT_KEY:
+                        CHECK_SUBOPTARG(SUBOPT_KEY);
+                        server.https.key = suboptarg;
+                        break;    
                     case SUBOPT_INCLUDE:
                         CHECK_SUBOPTARG(SUBOPT_INCLUDE);
                         server.https.include = suboptarg;

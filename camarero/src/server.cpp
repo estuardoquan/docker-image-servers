@@ -20,8 +20,8 @@ void Server::print()
 
     if (https.active)
     {
-        printf("\tssl_certificate %s/%s.crt;\n", https.path.c_str(), https.filename.c_str());
-        printf("\tssl_certificate_key %s/%s.key;\n", https.path.c_str(), https.filename.c_str());
+        printf("\tssl_certificate %s/%s;\n", https.path.c_str(), https.crt.c_str());
+        printf("\tssl_certificate_key %s/%s;\n", https.path.c_str(), https.key.c_str());
         printf("\tinclude %s;\n\n", https.include.c_str());
     }
     if (!root.empty())
